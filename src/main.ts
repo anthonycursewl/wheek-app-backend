@@ -5,11 +5,11 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { setupHelmet } from './infrastructure/middleware/helmet.middleware';
-import { setupRateLimit } from './infrastructure/middleware/rate-limit.middleware';
-import { setupCompression } from './infrastructure/middleware/compression.middleware';
-import { setupCors } from './infrastructure/middleware/cors.middleware';
-import { LoggingInterceptor } from './interceptors/logging.interceptor';
+import { setupHelmet } from '@/src/middleware/helmet.middleware';
+import { setupRateLimit } from '@/src/middleware/rate-limit.middleware';
+import { setupCompression } from '@/src/middleware/compression.middleware';
+import { setupCors } from '@/src/middleware/cors.middleware';
+import { LoggingInterceptor } from '@/src/interceptors/logging.interceptor';
 import { ItemExceptionsFilter } from '@items/infraestructure/filters/item-exceptions.filter';
 import { OrderExceptionsFilter } from '@orders/infraestructure/filters/order-exceptions.filter';
 async function bootstrap() {
