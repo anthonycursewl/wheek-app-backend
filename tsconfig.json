@@ -15,11 +15,11 @@
       "@/domain/*": ["./src/domain/*"],
       "@/application/*": ["./src/application/*"],
       "@/infrastructure/*": ["./src/infrastructure/*"],
-      "@orders/*": ["./src/orders/*"],
-      "@items/*": ["./src/items/*"],
-      "@users/*": ["./src/users/*"],
-      "@auth/*": ["./src/auth/*"],
-      "@shared/*": ["./src/shared/*"]
+      "@orders/*": ["./src/contexts/orders/*"],
+      "@items/*": ["./src/contexts/items/*"],
+      "@users/*": ["./src/contexts/users/*"],
+      "@auth/*": ["./src/contexts/auth/*"],
+      "@shared/*": ["./src/contexts/shared/*"]
     },
 
     "incremental": true,
