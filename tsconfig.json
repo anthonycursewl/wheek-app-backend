@@ -14,7 +14,12 @@
       "@/src/*": ["./src/*"],
       "@/domain/*": ["./src/domain/*"],
       "@/application/*": ["./src/application/*"],
-      "@/infrastructure/*": ["./src/infrastructure/*"]
+      "@/infrastructure/*": ["./src/infrastructure/*"],
+      "@orders/*": ["./src/orders/*"],
+      "@items/*": ["./src/items/*"],
+      "@users/*": ["./src/users/*"],
+      "@auth/*": ["./src/auth/*"],
+      "@shared/*": ["./src/shared/*"]
     },
 
     "incremental": true,
