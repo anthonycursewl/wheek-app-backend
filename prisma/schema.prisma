@@ -22,12 +22,37 @@ model Order {
   paymentGatewayRef String?
   createdAt         DateTime    @default(now())
   orderItems        OrderItem[]
+  shipping          Shipping?
+
 }
 
 model OrderItem {
   id           String @id
   order        Order  @relation(fields: [orderId], references: [id])
   orderId      String
+  itemId       String
+  quantity     Int
+  priceAtOrder Float
+}
+
+
+model Shipping {
+  id              String   @id
+  order           Order    @relation(fields: [orderId], references: [id])
+  orderId         String   @unique
+  status          String
+  street          String
+  city            String
+  state           String
+  zipCode         String
+  country         String
+  shippingItems   ShippingItem[]
+}
+
+model ShippingItem {
+  id           String   @id
+  shipping     Shipping @relation(fields: [shippingId], references: [id])
+  shippingId   String
   itemId       String
   quantity     Int
   priceAtOrder Float

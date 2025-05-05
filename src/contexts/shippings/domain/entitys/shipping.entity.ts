@@ -2,7 +2,7 @@ import { OrderItem, OrderItemPrimitives } from "@orders/domain/entitys/order-ite
 import { Address, AddressPrimitives } from "@shippings/domain/value-objects/address.vo";
 import { ShippingStatus, ShippingStatusEnum } from "@shippings/domain/value-objects/shipping-status.vo";
 
-interface ShippingPrimitives {
+export interface ShippingPrimitives {
   id: string;
   orderId: string;
   items: OrderItemPrimitives[];

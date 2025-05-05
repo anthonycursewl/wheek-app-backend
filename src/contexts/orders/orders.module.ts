@@ -1,4 +1,4 @@
-import CreateOrderController from '@orders/infraestructure/controllers/create-order.controller';
+import { CreateOrderController } from '@orders/infraestructure/controllers/create-order.controller';
 import { Module } from '@nestjs/common';  
 import { OrderRepositoryImpl } from '@orders/infraestructure/adapters/order.repository';
 import { ItemRepositoryImpl } from '@items/infraestructure/adapters/items.repository';
@@ -13,10 +13,17 @@ import { IncreaseItemStockUseCase } from '@items/application/increase-item-stock
 import { DecreaseItemStockUseCase } from '@items/application/decrease-item-stock.usecase';
 import { ListOrdersUseCase } from '@orders/application/list-orders.usecase';
 import { ListOrdersController } from '@orders/infraestructure/controllers/list-orders.controller';
+import { OrderProcessorService } from '@orders/infraestructure/services/order-processor.service';
+import { CreateShippingUseCase } from '@shippings/application/create-shipping.usecase';
+import { SHIPPING_REPOSITORY } from '../shippings/domain/repos/shipping.repository';
+import { ShippingRepositoryAdapter } from '@shippings/infraestructure/repos/shipping.repository';
+import { ItemsModule } from '@items/items.module';
 
 @Module({
+  imports: [ItemsModule],
   controllers: [CreateOrderController, ListOrdersController],
   providers: [
+    PrismaService,
     {
       provide: ORDER_REPOSITORY,
       useClass: OrderRepositoryImpl,
@@ -29,13 +36,18 @@ import { ListOrdersController } from '@orders/infraestructure/controllers/list-o
       provide: PAYMENT_GATEWAY,
       useClass: PaymentGatewayImpl,
     },
+    {
+      provide: SHIPPING_REPOSITORY,
+      useClass: ShippingRepositoryAdapter,
+    },
     PayOrderUseCase,
     IncreaseItemStockUseCase,
     DecreaseItemStockUseCase,
     CreateOrderUseCase,
     ListOrdersUseCase,
-    PrismaService,
+    OrderProcessorService,
+    CreateShippingUseCase,
   ],
-  exports: [PrismaService],
+  exports: [],
 })
 export class OrdersModule {}

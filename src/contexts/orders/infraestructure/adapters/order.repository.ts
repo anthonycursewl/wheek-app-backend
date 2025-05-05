@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OrderRepository } from '@orders/domain/repos/order.repository';
-import { Order, OrderItem as OrderItemPrimitives } from '@orders/domain/entitys/order.entity';
+import { Order } from '@orders/domain/entitys/order.entity';
 import { Transaction } from '@shared/persistance/transactions';
 import { PrismaService } from '@shared/persistance/prisma.service';
 import {
@@ -9,6 +9,7 @@ import {
   Order as PrismaOrder,
   OrderItem as PrismaOrderItem,
 } from '@prisma/client';
+import { OrderItemPrimitives } from '@orders/domain/entitys/order-item.entity';
 type OrderWithItems = PrismaOrder & { orderItems: PrismaOrderItem[] };
 
 @Injectable()

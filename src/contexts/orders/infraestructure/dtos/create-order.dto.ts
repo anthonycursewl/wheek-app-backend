@@ -4,7 +4,7 @@ import { IsArray, ValidateNested, IsString } from 'class-validator';
 import { OrderItemDto } from '@orders/infraestructure/dtos/order-item.dto';
 import { AddressDto } from '@orders/infraestructure/dtos/address.dto';
 import { PaymentDetailsDto } from '@orders/infraestructure/dtos/payment-details.dto';
-
+import { ShippingDto } from '@shippings/infraestructure/dtos/shipping.dto';
 export class CreateOrderDto {
   @ApiProperty({ example: 'order-uuid-1234' })
   @IsString()
@@ -25,4 +25,9 @@ export class CreateOrderDto {
   @ValidateNested()
   @Type(() => PaymentDetailsDto)
   paymentDetails: PaymentDetailsDto;
+
+  @ApiProperty()
+  @ValidateNested()
+  @Type(() => AddressDto)
+  shippingAddress: AddressDto;
 }
