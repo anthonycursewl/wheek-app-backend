@@ -3,16 +3,13 @@ import { PrismaService } from '@shared/persistance/prisma.service';
 import { ShippingRepository } from '@shippings/domain/repos/shipping.repository';
 import { Shipping, ShippingPrimitives } from '@shippings/domain/entitys/shipping.entity';
 import { Transaction } from '@shared/persistance/transactions';
-import { PrismaClient } from '@prisma/client';
-import { Shipping as PrismaShipping, ShippingItem as PrismaShippingItem } from '@prisma/client';
+import { PrismaClient, Shipping as PrismaShipping, ShippingItem as PrismaShippingItem } from '@prisma/client';
 import { OrderItem } from '@/src/contexts/orders/domain/entitys/order-item.entity';
 import { OrderItemPrimitives } from '@/src/contexts/orders/domain/entitys/order-item.entity';
 
-
-
 @Injectable()
 export class ShippingRepositoryAdapter implements ShippingRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   private mapPrismaShippingToDomain(shipping: PrismaShipping & { shippingItems: PrismaShippingItem[] }): Shipping {
     return Shipping.fromPrimitives(
@@ -20,7 +17,8 @@ export class ShippingRepositoryAdapter implements ShippingRepository {
         id: shipping.id,
         orderId: shipping.orderId,
         status: shipping.status,
-        items: shipping.shippingItems.map((item) => this.mapPrismaShippingItemToDomain(item)), 
+        userId: shipping.userId,
+        items: shipping.shippingItems.map((item) => this.mapPrismaShippingItemToDomain(item)),
         shippingAddress: {
           street: shipping.street,
           city: shipping.city,
@@ -51,8 +49,9 @@ export class ShippingRepositoryAdapter implements ShippingRepository {
       state: shipping.shippingAddress.state,
       zipCode: shipping.shippingAddress.zipCode,
       country: shipping.shippingAddress.country,
+      userId: shipping.userId,
     };
-  }   
+  }
 
   private mapShippingItemPrimitivesToPrisma(item: OrderItemPrimitives, shippingId: string): PrismaShippingItem {
     return {
@@ -134,7 +133,7 @@ export class ShippingRepositoryAdapter implements ShippingRepository {
 
       return this.mapPrismaShippingToDomain(updated);
     } catch (error) {
-              throw error;
+      throw error;
     }
   }
 
@@ -147,11 +146,24 @@ export class ShippingRepositoryAdapter implements ShippingRepository {
         },
       });
 
-      return shippings.map((shipping) => 
+      return shippings.map((shipping) =>
         this.mapPrismaShippingToDomain(shipping)
       );
     } catch (error) {
       throw error;
     }
+  }
+
+  async findByUserId(userId: string, tx?: Transaction): Promise<Shipping[]> {
+    const client = tx as PrismaClient || this.prisma;
+    const shippings = await client.shipping.findMany({
+      where: { order: { userId } },
+      include: {
+        shippingItems: true,
+      },
+    });
+    return shippings.map((shipping) =>
+      this.mapPrismaShippingToDomain(shipping)
+    );
   }
 } 

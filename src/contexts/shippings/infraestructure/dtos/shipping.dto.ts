@@ -44,6 +44,9 @@ export class ShippingDto {
   @ApiProperty()
   shippingAddress: AddressDto;
 
+  @ApiProperty()
+  userId: string;
+
   @ApiProperty({ type: [ShippingItemDto] })
   items: ShippingItemDto[];
 

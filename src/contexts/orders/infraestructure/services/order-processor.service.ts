@@ -43,6 +43,7 @@ export class OrderProcessorService {
         const orderResult = await this.createOrderUseCase.execute(
           {
             id: command.id,
+            userId,
             items: command.items,
           },
           tx

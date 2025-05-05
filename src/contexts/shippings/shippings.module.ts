@@ -7,8 +7,10 @@ import { ShippingRepositoryAdapter } from './infraestructure/repos/shipping.repo
 import { UpdateShippingStatusUseCase } from './application/update-shipping-status.usecase';
 import { PrismaService } from '@shared/persistance/prisma.service';
 import ListShippingsController from './infraestructure/controllers/list-shippings.controller';
+import { ListUserShippingsController } from './infraestructure/controllers/list-user-shippings.controller';
+import { ListUserShippingsUseCase } from './application/list-user-shippings.usecase';
 @Module({
-  controllers: [ListShippingsController],
+  controllers: [ListShippingsController, ListUserShippingsController],
   providers: [
     {
       provide: ORDER_REPOSITORY,
@@ -22,6 +24,7 @@ import ListShippingsController from './infraestructure/controllers/list-shipping
     PrismaService,
     ListShippingsUseCase,
     UpdateShippingStatusUseCase,
+    ListUserShippingsUseCase,
   ],
   exports: [],
 })

@@ -7,6 +7,7 @@ export interface ShippingRepository {
   findByOrderId(orderId: string, tx?: Transaction): Promise<Shipping | null>;
   update(shipping: Shipping, tx?: Transaction): Promise<Shipping>;
   findAll(tx?: Transaction): Promise<Shipping[]>;
+  findByUserId(userId: string, tx?: Transaction): Promise<Shipping[]>;
 }
 
 export const SHIPPING_REPOSITORY = Symbol('ShippingRepository'); 

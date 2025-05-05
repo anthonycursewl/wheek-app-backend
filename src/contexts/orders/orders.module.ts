@@ -18,10 +18,16 @@ import { CreateShippingUseCase } from '@shippings/application/create-shipping.us
 import { SHIPPING_REPOSITORY } from '../shippings/domain/repos/shipping.repository';
 import { ShippingRepositoryAdapter } from '@shippings/infraestructure/repos/shipping.repository';
 import { ItemsModule } from '@items/items.module';
+import { ListUserOrdersController } from '@orders/infraestructure/controllers/list-user-orders.controller';
+import { ListUserOrdersUseCase } from '@orders/application/list-user-orders.usecase';
 
 @Module({
   imports: [ItemsModule],
-  controllers: [CreateOrderController, ListOrdersController],
+  controllers: [
+    CreateOrderController,
+    ListOrdersController,
+    ListUserOrdersController,
+  ],
   providers: [
     PrismaService,
     {
@@ -47,7 +53,8 @@ import { ItemsModule } from '@items/items.module';
     ListOrdersUseCase,
     OrderProcessorService,
     CreateShippingUseCase,
+    ListUserOrdersUseCase,
   ],
-  exports: [],
+  exports: [CreateOrderUseCase],
 })
 export class OrdersModule {}

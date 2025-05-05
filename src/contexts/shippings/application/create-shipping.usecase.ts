@@ -49,6 +49,7 @@ export class CreateShippingUseCase {
         order.orderItems,
         shippingAddress,
         new ShippingStatus(ShippingStatusEnum.PENDING),
+        order.userId,
       );
 
       // Guardar el envío

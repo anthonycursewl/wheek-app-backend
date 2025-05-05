@@ -8,6 +8,7 @@ export interface ShippingPrimitives {
   items: OrderItemPrimitives[];
   shippingAddress: AddressPrimitives;
   status: string;
+  userId: string;
 }
 
 export class Shipping {
@@ -16,7 +17,7 @@ export class Shipping {
   private _items: OrderItem[];
   private _shippingAddress: Address;
   private _status: ShippingStatus;
-
+  private _userId: string;
 
   constructor(
     id: string,
@@ -24,12 +25,14 @@ export class Shipping {
     items: OrderItem[],
     shippingAddress: Address,
     status: ShippingStatus = new ShippingStatus(ShippingStatusEnum.PENDING),
+    userId: string,
   ) {
     this._id = id;
     this._orderId = orderId;
     this._items = items;
     this._shippingAddress = shippingAddress;
     this._status = status;
+    this._userId = userId;
   }
 
   get id(): string {
@@ -73,6 +76,7 @@ export class Shipping {
       data.items.map((item) => OrderItem.fromPrimitives(item)),
       Address.fromPrimitives(data.shippingAddress),
       ShippingStatus.fromString(data.status),
+      data.userId,
     );
   }
 
@@ -83,6 +87,7 @@ export class Shipping {
       items: this._items.map((item) => item.toPrimitives()),
       shippingAddress: this._shippingAddress.toPrimitives(),
       status: this._status.value,
+      userId: this._userId,
     };
   }
 } 
