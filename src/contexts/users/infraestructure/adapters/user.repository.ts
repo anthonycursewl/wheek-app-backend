@@ -16,24 +16,34 @@ export class UserRepositoryAdapter implements UserRepository {
       email: user.email,
       password: user.password,
       role: UserRole.create(user.role as UserRoleEnum),
-      createdAt: user.createdAt
+      name: user.name,
+      last_name: user.last_name,
+      username: user.username,
+      created_at: user.created_at,
+      is_active: user.is_active,
+      icon_url: user.icon_url,
     });
   }
 
   async create(user: User, tx?: Transaction): Promise<User> {
     const client = tx as PrismaClient || this.prisma;
     try {
-      const created = await client.user.create({
+      const created = await client.users.create({
         data: {
           id: user.getId(),
+          name: user.getName(),
+          last_name: user.getLastName(),
+          username: user.getUsername(),
           email: user.getEmail(),
           password: user.getPassword(),
           role: user.getRole().getValue(),
-          createdAt: user.getCreatedAt(),
+          created_at: user.getCreatedAt(),
+          is_active: user.getIsActive(),
+          icon_url: user.getIconUrl(),
         },
       });
 
-      return user;
+      return this.mapPrismaUserToDomain(created);
     } catch (error) {
       throw error;
     }
@@ -42,7 +52,7 @@ export class UserRepositoryAdapter implements UserRepository {
   async findById(id: string, tx?: Transaction): Promise<User | null> {
     const client = tx as PrismaClient || this.prisma;
     try {
-      const found = await client.user.findUnique({
+      const found = await client.users.findUnique({
         where: { id },
       });
 
@@ -56,8 +66,8 @@ export class UserRepositoryAdapter implements UserRepository {
   async findByEmail(email: string, tx?: Transaction): Promise<User | null> {
     const client = tx as PrismaClient || this.prisma;
     try {
-      const found = await client.user.findUnique({
-        where: { email },
+      const found = await client.users.findFirst({
+        where: { email: email },
       });
 
       if (!found) return null;
@@ -70,16 +80,18 @@ export class UserRepositoryAdapter implements UserRepository {
   async update(user: User, tx?: Transaction): Promise<User> {
     const client = tx as PrismaClient || this.prisma;
     try {
-      const updated = await client.user.update({
+      const updated = await client.users.update({
         where: { id: user.getId() },
         data: {
           email: user.getEmail(),
           password: user.getPassword(),
           role: user.getRole().getValue(),
+          is_active: user.getIsActive(),
+          icon_url: user.getIconUrl(),
         },
       });
 
-      return user;
+      return this.mapPrismaUserToDomain(updated);
     } catch (error) {
       throw error;
     }

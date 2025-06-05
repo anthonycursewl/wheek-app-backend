@@ -1,6 +1,7 @@
 export enum UserRoleEnum {
   ADMIN = 'ADMIN',
-  CUSTOMER = 'CUSTOMER',
+  USER = 'USER',
+  ASISTENT = 'ASISTENT',
 }
 
 export class UserRole {
@@ -18,7 +19,11 @@ export class UserRole {
     return this.value === UserRoleEnum.ADMIN;
   }
 
-  isCustomer(): boolean {
-    return this.value === UserRoleEnum.CUSTOMER;
+  isUser(): boolean {
+    return this.value === UserRoleEnum.USER;
+  }
+
+  isAsistent(): boolean {
+    return this.value === UserRoleEnum.ASISTENT;
   }
 } 

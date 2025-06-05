@@ -15,19 +15,23 @@ export class RegisterUseCase {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async execute(email: string, password: string, tx?: Transaction): Promise<Result<User, Error>> {
+  async execute(email: string, password: string, name: string, last_name: string, username: string, tx?: Transaction): Promise<Result<User, Error>> {
     try {
       const existingUser = await this.userRepository.findByEmail(email, tx);
       if (existingUser) {
         return failure(new Error('Email already exists'));
       }
+
       const salt = 10;
       const salted = bcrypt.genSaltSync(salt);
       const hashedPassword = bcrypt.hashSync(password, salted);
       const user = User.create({
         email,
         password: hashedPassword,
-        role: UserRole.create(UserRoleEnum.CUSTOMER),
+        role: UserRole.create(UserRoleEnum.USER),
+        name, 
+        last_name,
+        username,
       });
 
       const createdUser = await this.userRepository.create(user, tx);

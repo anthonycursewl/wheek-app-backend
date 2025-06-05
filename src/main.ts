@@ -10,8 +10,6 @@ import { setupRateLimit } from '@/src/middleware/rate-limit.middleware';
 import { setupCompression } from '@/src/middleware/compression.middleware';
 import { setupCors } from '@/src/middleware/cors.middleware';
 import { LoggingInterceptor } from '@/src/interceptors/logging.interceptor';
-import { ItemExceptionsFilter } from '@items/infraestructure/filters/item-exceptions.filter';
-import { OrderExceptionsFilter } from '@orders/infraestructure/filters/order-exceptions.filter';
 import { DefaultExceptionsFilter } from '@/src/default-exceptions-errors';
 import { AuthExceptionsFilter } from './contexts/users/infraestructure/filters/auth-exceptions.filter';
 async function bootstrap() {
@@ -24,15 +22,14 @@ async function bootstrap() {
   await setupRateLimit(app);
   await setupCompression(app);
   await setupCors(app);
-  app.useGlobalFilters(new ItemExceptionsFilter(), new OrderExceptionsFilter(), new AuthExceptionsFilter());
+  app.useGlobalFilters(new AuthExceptionsFilter());
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalFilters(new DefaultExceptionsFilter());
   const config = new DocumentBuilder()
-    .setTitle('My Bun NestJS API')
-    .setDescription('Descripción de la API creada con NestJS, Bun y Fastify')
+    .setTitle('Wheek API')
+    .setDescription('API para la gestión de usuarios y ordenes')
     .setVersion('1.0')
     .addBearerAuth()
-
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

@@ -17,6 +17,12 @@ class RegisterDto {
   email: string;
   @ApiProperty({ example: 'password123' })
   password: string;
+  @ApiProperty({ example: 'name' })
+  name: string;
+  @ApiProperty({ example: 'last_name' })
+  last_name: string;
+  @ApiProperty({ example: 'username' })
+  username: string;
 }
 
 class VerifyDto {
@@ -49,14 +55,15 @@ export class AuthController {
   }
 
   @Post('register')
-  @ApiOperation({ summary: 'Register new user' })
+  @ApiOperation({ summary: 'Register new user' }) 
   @ApiResponse({ status: 201, description: 'User registered successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   async register(@Body() registerDto: RegisterDto) {
-    if (!registerDto?.email || !registerDto?.password) {
-      throw new UnauthorizedException('Email and password are required');
+    if (!registerDto?.email || !registerDto?.password || !registerDto?.name || !registerDto?.last_name || !registerDto?.username) {
+      throw new UnauthorizedException('Email, password, name, last_name and username are required');
     }
-    const result = await this.registerUseCase.execute(registerDto.email, registerDto.password);
+    
+    const result = await this.registerUseCase.execute(registerDto.email, registerDto.password, registerDto.name, registerDto.last_name, registerDto.username);
     if (!result.isSuccess) {
       throw new UnauthorizedException(result.error.message);
     }
