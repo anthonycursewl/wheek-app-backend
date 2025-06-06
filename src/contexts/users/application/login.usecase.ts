@@ -14,11 +14,18 @@ export class LoginUseCase {
     private readonly jwtService: JwtService,
   ) {}
 
-  async execute(email: string, password: string, tx?: Transaction): Promise<Result<{ access_token: string }, Error>> {
+  async execute(email: string, password: string, ref?: string, tx?: Transaction): Promise<Result<{ access_token: string, refresh_token: string }, Error>> {
     try {
       const user = await this.userRepository.findByEmail(email, tx);
       if (!user) {
         return failure(new Error('Invalid credentials'));
+      }
+
+      if (user && ref === 'email') {
+        return success({
+          access_token: '',
+          refresh_token: '',
+        });
       }
 
       const isValidPassword = await bcrypt.compare(password, user.getPassword());
@@ -32,8 +39,9 @@ export class LoginUseCase {
         role: user.getRole().getValue() 
       };
       
-      const access_token = this.jwtService.sign(payload);
-      return success({ access_token });
+      const access_token = this.jwtService.sign(payload, { expiresIn: process.env.JWT_EXPIRES_IN, secret: process.env.JWT_SECRET });
+      const refresh_token = this.jwtService.sign(payload, { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN, secret: process.env.JWT_REFRESH_SECRET });
+      return success({ access_token, refresh_token });
     } catch (error) {
       return failure(error as Error);
     }
