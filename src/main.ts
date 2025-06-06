@@ -12,11 +12,13 @@ import { setupCors } from '@/src/middleware/cors.middleware';
 import { LoggingInterceptor } from '@/src/interceptors/logging.interceptor';
 import { DefaultExceptionsFilter } from '@/src/default-exceptions-errors';
 import { AuthExceptionsFilter } from './contexts/users/infraestructure/filters/auth-exceptions.filter';
+
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
   );
+  app.setGlobalPrefix('api');
 
   await setupHelmet(app);
   await setupRateLimit(app);
