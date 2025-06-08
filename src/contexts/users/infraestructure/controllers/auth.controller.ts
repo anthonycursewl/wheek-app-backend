@@ -116,10 +116,11 @@ export class AuthController {
     }
     
     const token = req.headers.authorization.split(' ')[1];
-    const result = await this.verifyUseCase.execute(token);
+    const result = await this.verifyUseCase.execute(token, process.env.JWT_SECRET || '');
     if (!result.isSuccess) {
       throw new UnauthorizedException(result.error.message);
     }
+    
     return result.value;
   }
 } 
