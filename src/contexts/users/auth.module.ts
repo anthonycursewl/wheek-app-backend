@@ -11,14 +11,15 @@ import { RegisterUseCase } from '@users/application/register.usecase';
 import { VerifyUseCase } from '@users/application/verify.usecase';
 import { PrismaService } from '@shared/persistance/prisma.service';
 import { UserRepositoryAdapter } from '@users/infraestructure/adapters/user.repository';
+
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET || 'your-secret-key',
+      secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1d' },
-    }),
+    })
   ],
   controllers: [AuthController],
   providers: [
