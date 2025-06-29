@@ -3,7 +3,6 @@ import { ApiTags, ApiOperation, ApiResponse, ApiProperty } from '@nestjs/swagger
 import { LoginUseCase } from '../../application/login.usecase';
 import { RegisterUseCase } from '../../application/register.usecase';
 import { VerifyUseCase } from '../../application/verify.usecase';
-import { Result } from '@shared/ROP/result';
 import { Request } from 'express';
 
 class LoginDto {
