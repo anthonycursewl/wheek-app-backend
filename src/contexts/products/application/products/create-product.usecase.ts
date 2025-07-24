@@ -19,7 +19,7 @@ export class CreateProductUseCase {
                     cost: productData.w_ficha.cost,
                     benchmark: productData.w_ficha.benchmark,
                     tax: productData.w_ficha.tax
-                } : null
+                } : null,
             });
             
             const created = await this.productRepository.create(product);
