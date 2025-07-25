@@ -17,38 +17,16 @@ export class ProductController {
         const { w_ficha, ...productData } = createProductDto;
         
         const result = await this.createProductUseCase.execute({
-            id: productData.id,
-            name: productData.name,
-            barcode: productData.barcode,
-            store_id: productData.store_id,
-            provider_id: productData.provider_id,
-            category_id: productData.category_id,
-            w_ficha: w_ficha ? {
-                id: '',
-                condition: w_ficha.condition,
-                cost: w_ficha.cost,
-                benchmark: w_ficha.benchmark,
-                tax: w_ficha.tax,
-                product_id: productData.id
-            } : null
+            ...productData,
+            w_ficha: w_ficha
         });
 
         if (!result.isSuccess) {
             throw new BadRequestException(result.error?.message || 'Error al crear el producto');
         }
 
-        const { id, barcode, name, store_id, created_at, provider_id, category_id, w_ficha: ficha } = result.value.toPrimitive();
-        
-        return {
-            id,
-            barcode,
-            name,
-            store_id,
-            created_at,
-            provider_id,
-            category_id,
-            w_ficha: ficha
-        };
+        const product = result.value.toPrimitive();
+        return product;
     }
 
     @Get('get/all')

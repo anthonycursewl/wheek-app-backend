@@ -8,11 +8,11 @@ export interface ProductPrimitive {
     created_at: Date;
     provider_id: string;
     category_id: string;
-    w_ficha: FichaPrimitive | null;
+    w_ficha: FichaPrimitive;
 }
 
-export interface CreateProductData extends Omit<ProductPrimitive, 'created_at' | 'w_ficha'> {
-    w_ficha?: Omit<FichaPrimitive, 'id' | 'product_id'> | null;
+export interface CreateProductData extends Omit<ProductPrimitive, 'created_at' | 'id' | 'w_ficha'> {
+    w_ficha: Omit<FichaPrimitive, 'id' | 'product_id'>;
 }
 
 export class Product {
@@ -23,7 +23,7 @@ export class Product {
     private readonly created_at: Date;
     private readonly provider_id: string;
     private readonly category_id: string;
-    private readonly w_ficha: Ficha | null;
+    private readonly w_ficha: Ficha;
 
     private constructor(
         id: string, 
@@ -33,7 +33,7 @@ export class Product {
         created_at: Date, 
         provider_id: string,
         category_id: string,
-        w_ficha: Ficha | null
+        w_ficha: Ficha
     ) {
         this.id = id;
         this.barcode = barcode;
@@ -51,13 +51,10 @@ export class Product {
     static create(data: CreateProductData): Product {
         const createdAt = new Date();
         
-        let ficha: Ficha | null = null;
-        if (data.w_ficha) {
-            ficha = Ficha.create(data.w_ficha);
-        }
+        const ficha = Ficha.create(data.w_ficha);
 
         return new Product(
-            data.id,
+            this.generateEAN13Barcode(),
             data.barcode,
             data.name,
             data.store_id,
@@ -80,7 +77,13 @@ export class Product {
             primitive.created_at,
             primitive.provider_id,
             primitive.category_id,
-            primitive.w_ficha ? Ficha.fromPrimitive(primitive.w_ficha) : null
+            primitive.w_ficha ? Ficha.fromPrimitive(primitive.w_ficha) : Ficha.create({
+                condition: '',
+                cost: 0,
+                benchmark: 0,
+                tax: false,
+                product_id: primitive.id
+            })
         );
         
         return product;
@@ -99,7 +102,7 @@ export class Product {
             created_at: this.created_at,
             provider_id: this.provider_id,
             category_id: this.category_id,
-            w_ficha: this.w_ficha ? this.w_ficha.toPrimitive() : null
+            w_ficha: this.w_ficha.toPrimitive()
         };
     }
     
