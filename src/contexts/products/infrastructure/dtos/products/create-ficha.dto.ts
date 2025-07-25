@@ -11,8 +11,6 @@ import {
 } from 'class-validator';
 
 export class CreateFichaDto {
-    @IsOptional()
-    readonly id?: string;
     @IsString({ message: 'La condición debe ser un texto' })
     @IsNotEmpty({ message: 'La condición es requerida' })
     @IsIn(['new', 'used', 'refurbished'], { 
