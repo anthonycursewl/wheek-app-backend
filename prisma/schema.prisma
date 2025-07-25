@@ -67,7 +67,7 @@ model w_fichas {
   benchmark  Decimal  @db.Decimal(10, 2)
   tax        Boolean
   product_id String   @unique @db.VarChar(255)
-  product    products @relation(fields: [product_id], references: [id], onDelete: Cascade, map: "product_id")
+  product    products @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "product_id")
 }
 
 model categories {
