@@ -11,14 +11,7 @@ import {
 import { Type } from 'class-transformer';
 import { CreateFichaDto } from './create-ficha.dto';
 
-export class CreateProductDto {
-    @IsString({ message: 'El ID debe ser un texto' })
-    @IsNotEmpty({ message: 'El ID es requerido' })
-    @Length(1, 255, { 
-        message: 'El ID debe tener entre 1 y 255 caracteres' 
-    })
-    readonly id: string;
-    
+export class CreateProductDto {    
     @IsString({ message: 'El nombre debe ser un texto' })
     @IsNotEmpty({ message: 'El nombre es requerido' })
     @Length(1, 255, { 
@@ -67,8 +60,8 @@ export class CreateProductDto {
         message: 'La ficha no es válida' 
     })
     @Type(() => CreateFichaDto)
-    @IsOptional()
-    readonly w_ficha?: CreateFichaDto | null;
+    @IsNotEmpty({ message: 'La ficha es requerida' })
+    readonly w_ficha: CreateFichaDto;
 
     constructor(partial: Partial<CreateProductDto>) {
         Object.assign(this, partial);
