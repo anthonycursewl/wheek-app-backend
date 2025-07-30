@@ -47,7 +47,5 @@ export class ProductRepositoryAdapter implements ProductRepository {
 
             return Product.fromPrimitive(primitiveForDomain);
         });
-
-        
     }
 }
