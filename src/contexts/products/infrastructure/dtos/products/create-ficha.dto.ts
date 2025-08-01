@@ -1,3 +1,6 @@
+// This is a validation class for the ficha of a product
+// We're using class-validator to validate the ficha data
+// At controller level we're using class-transformer to transform the request body to a CreateFichaDto object
 import { 
     IsString, 
     IsNotEmpty, 
@@ -7,7 +10,6 @@ import {
     IsIn, 
     Min, 
     Max, 
-    IsOptional 
 } from 'class-validator';
 
 export class CreateFichaDto {
