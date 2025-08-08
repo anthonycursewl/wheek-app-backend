@@ -39,8 +39,8 @@ export class LoginUseCase {
         role: user.getRole().getValue() 
       };
       
-      const access_token = this.jwtService.sign(payload, { expiresIn: process.env.JWT_EXPIRES_IN, secret: process.env.JWT_SECRET });
-      const refresh_token = this.jwtService.sign(payload, { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN, secret: process.env.JWT_REFRESH_SECRET });
+      const access_token = this.jwtService.sign(payload, { expiresIn: process.env.JWT_ACCESS_EXPIRATION, secret: process.env.JWT_ACCESS_SECRET });
+      const refresh_token = this.jwtService.sign(payload, { expiresIn: process.env.JWT_REFRESH_EXPIRATION, secret: process.env.JWT_REFRESH_SECRET });
       return success({ access_token, refresh_token });
     } catch (error) {
       return failure(error as Error);
