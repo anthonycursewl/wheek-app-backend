@@ -33,7 +33,7 @@ export class Category {
         const categoryId = randomUUID();
         return new Category(
             categoryId,
-            data.name,
+            data.name.trim(),
             new Date(),
             new Date(),
             data.store_id
@@ -43,7 +43,7 @@ export class Category {
     public update(data: Omit<CategoryPrimitives, 'id' | 'created_at' | 'updated_at'>): Category {
         return new Category(
             this.id,
-            data.name,
+            data.name.trim(),
             this.created_at,
             new Date(),
             data.store_id
