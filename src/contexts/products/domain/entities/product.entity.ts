@@ -20,6 +20,10 @@ export class Product {
     private readonly barcode: string;
     private readonly name: string;
     private readonly store_id: string;
+    
+    get storeId(): string {
+        return this.store_id;
+    }
     private readonly created_at: Date;
     private readonly provider_id: string;
     private readonly category_id: string;
@@ -46,6 +50,8 @@ export class Product {
     }
     
     /**
+     * @params data: CreateProductData
+     * 
      * Factory method to create a new Product aggregate with optional ficha
      */
     static create(data: CreateProductData): Product {
@@ -62,6 +68,24 @@ export class Product {
             data.provider_id,
             data.category_id,
             ficha
+        );
+    }
+
+    /**
+     * @params data: UpdateProductData
+     * 
+     * Factory method to update an existing Product aggregate
+     */
+    static update(data: ProductPrimitive): Product {
+        return new Product(
+            data.id,
+            data.barcode,
+            data.name,
+            data.store_id,
+            data.created_at,
+            data.provider_id,   
+            data.category_id,
+            Ficha.update(data.w_ficha) 
         );
     }
     

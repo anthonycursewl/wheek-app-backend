@@ -53,13 +53,23 @@ export class Ficha {
     }
 
     /**
+     * Factory method to update an existing Ficha instance
+     */
+    public static update(data: FichaPrimitive): Ficha {
+        return new Ficha(
+            data.id,
+            data.condition,
+            data.cost,
+            data.benchmark,
+            data.tax,
+            data.product_id
+        );
+    }
+
+    /**
      * Factory method to reconstruct a Ficha entity from primitive data
      */
     public static fromPrimitive(primitive: FichaPrimitive): Ficha {
-        if (!primitive.product_id) {
-            throw new Error('Cannot create Ficha without product_id');
-        }
-        
         return new Ficha(
             primitive.id,
             primitive.condition,
@@ -75,17 +85,13 @@ export class Ficha {
      * @throws Error if product_id is not set
      */
     public toPrimitive(): FichaPrimitive {
-        if (!this.product_id) {
-            throw new Error('Cannot convert Ficha to primitive without product_id');
-        }
-        
         return {
             id: this.id,
             condition: this.condition,
             cost: this.cost,
             benchmark: this.benchmark,
             tax: this.tax,
-            product_id: this.product_id
+            product_id: this.product_id || ''
         };
     }
     

@@ -14,8 +14,12 @@ import { ProviderRepositoryAdapter } from "./infrastructure/adapters/provider.re
 import { CreateProviderUseCase } from "./application/providers/create-provider.usecase";
 import { GetAllProvidersUseCase } from "./application/providers/get-all-providers.usecase";
 import { GetAllCategoriesUseCase } from "./application/categories/get-all-categories.usecase";
+import { GetAllProductsUseCase } from "./application/products/get-all-products.usecase";
+import { UpdateProductUseCase } from "./application/products/update-product.usecase";
+import { DeleteProductUseCase } from "./application/products/delete-product.usecase";
 
 @Module({
+    imports: [],
     controllers: [ProductController, CategoryController, ProvidersController],
     providers: [
         PrismaService,
@@ -35,7 +39,10 @@ import { GetAllCategoriesUseCase } from "./application/categories/get-all-catego
         CreateCategoryUseCase,
         CreateProviderUseCase,
         GetAllProvidersUseCase,
-        GetAllCategoriesUseCase
+        GetAllCategoriesUseCase,
+        GetAllProductsUseCase,
+        UpdateProductUseCase,
+        DeleteProductUseCase
     ]
 })
 export class ProductsModule {}
