@@ -7,50 +7,153 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model store_members {
-  id               String   @id @db.VarChar(255)
-  user_id          String   @db.VarChar(255)
-  store_id         String?  @db.Uuid
-  is_member_active Boolean  @default(true)
-  created_at       DateTime @db.Timestamptz(6)
-  stores           stores?  @relation(fields: [store_id], references: [id], onDelete: Cascade, map: "store_id")
-  users            users    @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "user_id")
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
 }
 
+// ----------------------------------------
+// CORE MODELS
+// ----------------------------------------
+
 model stores {
-  id            String          @id @db.Uuid
-  name          String          @db.VarChar(255)
-  description   String?         @db.VarChar(255)
-  is_active     Boolean         @default(true)
-  created_at    DateTime        @db.Timestamptz(6)
-  owner         String          @db.VarChar(255)
-  categories    categories[]
-  products      products[]
-  providers     providers[]
-  store_members store_members[]
-  users         users           @relation(fields: [owner], references: [id], onDelete: Cascade, map: "user_id")
+  id               String        @id @db.Uuid
+  name             String        @db.VarChar(255)
+  description      String?       @db.VarChar(255)
+  is_active        Boolean       @default(true)
+  created_at       DateTime      @db.Timestamptz(6)
+  owner            String        @db.VarChar(255)
+  
+  // Relaciones
+  owner_user       users         @relation(fields: [owner], references: [id], onDelete: Cascade, map: "user_id")
+  categories       categories[]
+  products         products[]
+  providers        providers[]
+  roles            roles[]
+  user_roles       user_roles[]
+  invitations      invitations[] 
 }
 
 model users {
-  id            String          @id @db.VarChar(255)
-  name          String          @db.VarChar(255)
-  last_name     String          @db.VarChar(255)
-  password      String
-  role          String          @db.VarChar(255)
-  created_at    DateTime        @db.Timestamptz(6) @default(now())
-  updated_at    DateTime?       @db.Timestamptz(6) @updatedAt
-  deleted_at    DateTime?       @db.Timestamptz(6)
-  is_active     Boolean         @default(true)
-  icon_url      String?         @db.VarChar(255)
-  username      String          @db.VarChar(255)
-  email         String          @unique(map: "email") @db.VarChar(255)
-  store_members store_members[]
-  stores        stores[]
-  user_roles    user_roles[]
+  id               String        @id @db.VarChar(255)
+  name             String        @db.VarChar(255)
+  last_name        String        @db.VarChar(255)
+  password         String
+  created_at       DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime?     @updatedAt @db.Timestamptz(6)
+  deleted_at       DateTime?     @db.Timestamptz(6)
+  is_active        Boolean       @default(true)
+  icon_url         String?       @db.VarChar(255)
+  username         String        @db.VarChar(255)
+  email            String        @unique(map: "email") @db.VarChar(255)
   
+  // Relaciones
+  owned_stores     stores[]
+  user_roles       user_roles[]
+  invitations_sent invitations[] @relation("Inviter") // Relación inversa para invitaciones enviadas
+
   @@map("users")
 }
 
+// ----------------------------------------
+// RBAC & INVITATION MODELS
+// ----------------------------------------
+
+model user_roles {
+  id         String    @id @default(uuid()) @db.Uuid
+  user_id    String    @db.VarChar(255)
+  role_id    String    @db.Uuid
+  store_id   String    @db.Uuid
+  is_active  Boolean   @default(true)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @updatedAt @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+  
+  user       users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  role       roles     @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  store      stores    @relation(fields: [store_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, store_id], name: "user_store_role_unique")
+  @@map("user_roles")
+}
+
+model roles {
+  id          String             @id @default(uuid()) @db.Uuid
+  name        String             @db.VarChar(50)
+  description String?            @db.VarChar(255)
+  created_at  DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime?          @updatedAt @db.Timestamptz(6)
+  deleted_at  DateTime?          @db.Timestamptz(6)
+  is_active   Boolean            @default(true)
+  store_id    String             @db.Uuid
+  
+  store       stores             @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  permissions role_permission[]
+  user_roles  user_roles[]
+  invitations invitations[]   
+
+  @@unique([name, store_id], name: "roles_name_store_unique")
+  @@map("roles")
+}
+
+/*
+* Tabla pivote simplificada para Role <-> Permission
+*/
+model role_permission {
+  role_id       String      @db.Uuid
+  permission_id String      @db.Uuid
+  
+  role          roles       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  permission    permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+  
+  @@id([role_id, permission_id])
+}
+
+/*
+* Modelo de permisos simplificado y programático
+*/
+model permissions {
+  id          String    @id @default(uuid()) @db.Uuid
+  description String?   @db.VarChar(255)
+  resource    String    @db.VarChar(100) 
+  action      String    @db.VarChar(50)  
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime? @updatedAt @db.Timestamptz(6)
+
+  roles       role_permission[]
+
+  @@unique([action, resource])
+}
+
+/*
+* Nuevo modelo para gestionar las invitaciones
+*/
+model invitations {
+  id            String           @id @default(uuid()) @db.Uuid
+  email         String           @db.VarChar(255)
+  store_id      String           @db.Uuid
+  role_id       String           @db.Uuid
+  invited_by_id String           @db.VarChar(255)
+  token         String           @unique
+  status        InvitationStatus @default(PENDING)
+  created_at    DateTime         @default(now()) @db.Timestamptz(6)
+  expires_at    DateTime         @db.Timestamptz(6)
+
+  // Relaciones
+  store         stores           @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  role          roles            @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  invited_by    users            @relation("Inviter", fields: [invited_by_id], references: [id], onDelete: Cascade)
+
+  @@unique([email, store_id, status], name: "pending_invitation_unique")
+}
+
+/*
+* ----------------------------------------
+* BUSINESS LOGIC MODELS
+* ----------------------------------------
+*/
 model products {
   id          String     @id @db.VarChar(255)
   barcode     String     @db.VarChar(255)
@@ -62,6 +165,7 @@ model products {
   is_active   Boolean    @default(true)
   provider_id String     @db.VarChar(255)
   category_id String     @db.Uuid
+  
   categories  categories @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "category_id")
   providers   providers  @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "provider_id")
   stores      stores     @relation(fields: [store_id], references: [id], onDelete: Cascade, map: "store_id")
@@ -75,6 +179,7 @@ model w_fichas {
   benchmark  Decimal  @db.Decimal(10, 2)
   tax        Boolean
   product_id String   @unique @db.VarChar(255)
+  
   product    products @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "product_id")
 }
 
@@ -84,7 +189,8 @@ model categories {
   created_at DateTime   @db.Timestamptz(6)
   updated_at DateTime   @db.Timestamptz(6)
   store_id   String     @db.Uuid
-  stores     stores     @relation(fields: [store_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "store_id")
+  
+  stores     stores     @relation(fields: [store_id], references: [id], onDelete: Cascade)
   products   products[]
 }
 
@@ -99,58 +205,7 @@ model providers {
   store_id      String     @db.Uuid
   contact_phone String     @default("NO_CONTACT_PHONE") @db.VarChar(255)
   contact_email String     @default("NO_CONTACT_EMAIL") @db.VarChar(255)
+  
   products      products[]
   stores        stores     @relation(fields: [store_id], references: [id], onDelete: Cascade, map: "store_id")
-}
-
-// RBAC Permission System
-model permissions {
-  id          String    @id @default(uuid()) @db.Uuid
-  name        String    @unique @db.VarChar(100)
-  description String?   @db.VarChar(255)
-  resource    String    @db.VarChar(100)
-  action      String    @db.VarChar(50)
-  created_at  DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime? @updatedAt @db.Timestamptz(6)
-  roles       role_permission[]
-}
-
-model roles {
-  id          String             @id @default(uuid()) @db.Uuid
-  name        String             @unique @db.VarChar(50)
-  description String?            @db.VarChar(255)
-  created_at  DateTime           @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime?          @updatedAt @db.Timestamptz(6)
-  deleted_at  DateTime?          @db.Timestamptz(6)
-  is_active   Boolean            @default(true)
-  permissions role_permission[]
-  user_roles  user_roles[]
-  
-  @@map("roles")
-}
-
-model role_permission {
-  id            String      @id @default(uuid()) @db.Uuid
-  role_id       String      @db.Uuid
-  permission_id String      @db.Uuid
-  created_at    DateTime    @default(now()) @db.Timestamptz(6)
-  role          roles       @relation(fields: [role_id], references: [id], onDelete: Cascade)
-  permission    permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade)
-
-  @@unique([role_id, permission_id], name: "role_permission_unique")
-}
-
-model user_roles {
-  id         String    @id @default(uuid()) @db.Uuid
-  user_id    String    @db.VarChar(255)
-  role_id    String    @db.Uuid
-  created_at DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at DateTime? @updatedAt @db.Timestamptz(6)
-  deleted_at DateTime? @db.Timestamptz(6)
-  is_active  Boolean   @default(true)
-  user       users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  role       roles     @relation(fields: [role_id], references: [id], onDelete: Cascade)
-
-  @@unique([user_id, role_id], name: "user_role_unique")
-  @@map("user_roles")
 }
