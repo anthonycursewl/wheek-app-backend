@@ -16,7 +16,7 @@
       "@items/*": ["./src/contexts/items/*"],
       "@users/*": ["./src/contexts/users/*"],
       "@auth/*": ["./src/contexts/auth/*"],
-      "@shared/*": ["./src/contexts/shared/*"],
+      "@shared/*": ["./src/shared/*"],
       "@shippings/*": ["./src/contexts/shippings/*"]
     },
 
