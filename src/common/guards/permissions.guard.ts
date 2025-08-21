@@ -22,14 +22,18 @@ export class PermissionsGuard implements CanActivate {
       PERMISSIONS_KEY,
       [context.getHandler(), context.getClass()],
     );
-
-    // If no permissions are required, allow access
+    
     if (!requiredPermissions || requiredPermissions.length === 0) {
       return true;
     }
 
     const request = context.switchToHttp().getRequest();
-    const user = request.user;
+    const { params, query, body, user } = request;
+    const storeId = params?.store_id || query?.store_id || body?.store_id;
+
+    if (!storeId) {
+      throw new ForbiddenException('Store ID is required for permission check');
+    }
 
     if (!user?.sub) {
       throw new ForbiddenException('User not authenticated');
@@ -40,12 +44,12 @@ export class PermissionsGuard implements CanActivate {
         SELECT p.resource, p.action
         FROM user_roles ur
         JOIN roles r ON ur.role_id = r.id
-        JOIN role_permissions rp ON r.id = rp.role_id
+        JOIN role_permission rp ON r.id = rp.role_id
         JOIN permissions p ON rp.permission_id = p.id
         WHERE ur.user_id = ${user.sub}
+        AND ur.store_id = ${storeId}::uuid
         AND ur.is_active = true
         AND r.is_active = true
-        AND p.is_active = true
       `;
 
       const hasPermission = permissions.some(permission =>
@@ -54,14 +58,14 @@ export class PermissionsGuard implements CanActivate {
 
       if (!hasPermission) {
         throw new ForbiddenException(
-          `Insufficient permissions. Required: ${requiredPermissions.join(', ')}`,
+          `Permisos insuficientes. Requeridos: ${requiredPermissions.join(', ')}`,
         );
       }
 
       return true;
     } catch (error) {
       console.error('Permission check failed:', error);
-      throw new ForbiddenException('Error checking permissions');
+      throw new ForbiddenException(error.message);
     }
   }
 }
