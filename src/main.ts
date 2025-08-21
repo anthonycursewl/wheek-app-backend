@@ -1,18 +1,23 @@
+// Core
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+
+// Documention
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { setupHelmet } from '@/src/middleware/helmet.middleware';
+
+// Middleware
 import { setupRateLimit } from '@/src/middleware/rate-limit.middleware';
 import { setupCompression } from '@/src/middleware/compression.middleware';
 import { setupCors } from '@/src/middleware/cors.middleware';
+
+// Interceptors
 import { LoggingInterceptor } from '@/src/interceptors/logging.interceptor';
+
+// Filters
 import { DefaultExceptionsFilter } from '@/src/default-exceptions-errors';
 import { AuthExceptionsFilter } from './contexts/users/infraestructure/filters/auth-exceptions.filter';
-import { PrismaService } from '@shared/persistance/prisma.service';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
@@ -62,7 +67,6 @@ async function bootstrap() {
   const port = process.env.PORT || 4001;
   await app.listen(port, '0.0.0.0');
   
-  console.log(`Application is running on: http://localhost:${port}/api`);
 }
 
 bootstrap();

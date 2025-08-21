@@ -1,10 +1,10 @@
 {
-  "name": "prueba-tecnica-nestjs",
+  "name": "wheek-app-backend",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Wheek's backend. Built on NestJS. Using hexagonal architecture.",
+  "author": "Anthony Cursewl",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
@@ -118,5 +118,8 @@
         "statements": 80
       }
     }
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }

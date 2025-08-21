@@ -46,13 +46,13 @@ model users {
   deleted_at       DateTime?     @db.Timestamptz(6)
   is_active        Boolean       @default(true)
   icon_url         String?       @db.VarChar(255)
-  username         String        @db.VarChar(255)
+  username         String        @db.VarChar(255) @unique
   email            String        @unique(map: "email") @db.VarChar(255)
   
   // Relaciones
   owned_stores     stores[]
   user_roles       user_roles[]
-  invitations_sent invitations[] @relation("Inviter") // Relación inversa para invitaciones enviadas
+  invitations_sent invitations[] @relation("Inviter")
 
   @@map("users")
 }
