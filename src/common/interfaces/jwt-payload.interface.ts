@@ -1,10 +1,7 @@
-import { Role } from '../enums/roles.enum';
-
 export interface JwtPayload {
   sub: string;
   email: string;
-  role: Role;
-  // Add any additional user properties you want to include in the JWT token
+  permissions: { action: string, resource: string }[];
 }
 
 export interface RequestWithUser extends Request {
