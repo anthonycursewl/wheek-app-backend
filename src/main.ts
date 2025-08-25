@@ -17,8 +17,7 @@ import { LoggingInterceptor } from '@/src/interceptors/logging.interceptor';
 
 // Filters
 import { DefaultExceptionsFilter } from '@/src/default-exceptions-errors';
-import { AuthExceptionsFilter } from './contexts/users/infraestructure/filters/auth-exceptions.filter';
-import { ValidationPipe } from '@nestjs/common';
+import { AuthExceptionsFilter } from '@/src/contexts/users/infraestructure/filters/auth-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -29,6 +28,10 @@ async function bootstrap() {
   
   // Set global prefix
   app.setGlobalPrefix('api');
+  app.useGlobalFilters(
+    new AuthExceptionsFilter(),
+    new DefaultExceptionsFilter()
+  );
 
   // Setup middleware
   await setupHelmet(app);
@@ -36,18 +39,8 @@ async function bootstrap() {
   await setupCompression(app);
   await setupCors(app);
   
-  // Global filters and interceptors
-  app.useGlobalFilters(
-    new AuthExceptionsFilter(),
-    new DefaultExceptionsFilter()
-  );
   
   app.useGlobalInterceptors(new LoggingInterceptor());
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    transform: true,
-    forbidNonWhitelisted: true,
-  }));
 
   // Prisma 5.0.0+ handles connection cleanup automatically
   // No need for explicit shutdown hooks with the library engine

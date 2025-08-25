@@ -1,6 +1,4 @@
-
-import { NotFoundException, UnauthorizedException, ForbiddenException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
-
+import { NotFoundException, UnauthorizedException, ForbiddenException, BadRequestException, InternalServerErrorException } from '@nestjs/common'
 import {
   Catch,
   ExceptionFilter,
@@ -10,6 +8,7 @@ import {
 } from '@nestjs/common';
 
 import { FastifyRequest as Request, FastifyReply as Response } from 'fastify';
+import { measureMemory } from 'vm';
 
 const errorCodes = {    
     [NotFoundException.name]: 404,
@@ -39,6 +38,10 @@ export class DefaultExceptionsFilter implements ExceptionFilter {
       message = 'Internal server error';
       errorName = exception.name;
       Logger.error(exception);
+    }
+
+    if (message.includes('prisma') && request.url.includes('stores')) {
+      message = 'Wheek | Ha ocurrido un error. Verifica la información enviada. Asegurate que el store_id sea correcto.';
     }
 
     const errorResponsePayload = {
