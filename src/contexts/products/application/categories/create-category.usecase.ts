@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { CATEGORY_REPOSITORY, CategoryRepository } from "../../domain/repos/category.repository";
 import { Category, CategoryPrimitives } from "../../domain/entities/categories.entity";
-import { Result, failure, success } from "@shared/ROP/result";
+import { Result, success, failure } from "@/src/contexts/shared/ROP/result";
 
 @Injectable()
 export class CreateCategoryUseCase {
