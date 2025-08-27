@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { PROVIDER_REPOSITORY, ProviderRepository } from "../../domain/repos/provider.repository";
 import { Provider, ProviderPrimitives } from "../../domain/entities/provider.entity";
-import { Result, failure, success } from "@shared/ROP/result";
+import { Result, success, failure } from "@/src/contexts/shared/ROP/result";
 
 @Injectable()
 export class CreateProviderUseCase {
