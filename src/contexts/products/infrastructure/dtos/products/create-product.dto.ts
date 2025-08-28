@@ -1,9 +1,7 @@
 import { 
     IsString, 
     IsNotEmpty, 
-    IsUUID, 
-    ValidateNested, 
-    IsOptional, 
+    ValidateNested,  
     IsObject, 
     Length, 
     IsAlphanumeric 
@@ -28,26 +26,17 @@ export class CreateProductDto {
         message: 'El código de barras debe tener entre 1 y 100 caracteres' 
     })
     readonly barcode: string;
-
-    @IsUUID(4, { 
-        message: 'El ID de la tienda debe ser un UUID v4 válido' 
-    })
+    
     @IsNotEmpty({ 
         message: 'El ID de la tienda es requerido' 
     })
     readonly store_id: string;
 
-    @IsUUID(4, { 
-        message: 'El ID del proveedor debe ser un UUID v4 válido' 
-    })
     @IsNotEmpty({ 
         message: 'El ID del proveedor es requerido' 
     })
     readonly provider_id: string;
 
-    @IsUUID(4, { 
-        message: 'El ID de la categoría debe ser un UUID v4 válido' 
-    })
     @IsNotEmpty({ 
         message: 'El ID de la categoría es requerido' 
     })

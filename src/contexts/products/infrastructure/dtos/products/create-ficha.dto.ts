@@ -1,33 +1,30 @@
 // This is a validation class for the ficha of a product
 // We're using class-validator to validate the ficha data
 // At controller level we're using class-transformer to transform the request body to a CreateFichaDto object
+
 import { 
     IsString, 
     IsNotEmpty, 
-    IsNumber, 
+    IsNumber,
     IsBoolean, 
-    IsPositive, 
     IsIn, 
-    Min, 
     Max, 
 } from 'class-validator';
 
 export class CreateFichaDto {
     @IsString({ message: 'La condición debe ser un texto' })
     @IsNotEmpty({ message: 'La condición es requerida' })
-    @IsIn(['new', 'used', 'refurbished'], { 
-        message: 'La condición debe ser uno de los siguientes valores: new, used, refurbished' 
+    @IsIn(['KG', 'UND'], { 
+        message: 'La condición debe ser uno de los siguientes valores: KG, UND' 
     })
     readonly condition: string;
 
     @IsNumber({}, { message: 'El costo debe ser un número' })
-    @IsPositive({ message: 'El costo debe ser un valor positivo' })
-    @Min(0, { message: 'El costo no puede ser negativo' })
+    @IsNotEmpty({ message: 'El costo es requerido' })
     readonly cost: number;
 
     @IsNumber({}, { message: 'El margen referencial debe ser un número' })
-    @IsPositive({ message: 'El margen referencial debe ser un valor positivo' })
-    @Min(0, { message: 'El margen referencial no puede ser negativo' })
+    @IsNotEmpty({ message: 'El margen referencial es requerido' })
     @Max(100, { message: 'El margen referencial no puede ser mayor a 100' })
     readonly benchmark: number;
 
@@ -35,6 +32,35 @@ export class CreateFichaDto {
     readonly tax: boolean;
 
     constructor(partial: Partial<CreateFichaDto>) {
+        Object.assign(this, partial);
+    }
+}
+
+export class UpdateFichaDto {
+    @IsString({ message: 'El ID debe ser un texto' })
+    @IsNotEmpty({ message: 'El ID es requerido' })
+    readonly id: string;
+
+    @IsString({ message: 'La condición debe ser un texto' })
+    @IsNotEmpty({ message: 'La condición es requerida' })
+    @IsIn(['KG', 'UND'], { 
+        message: 'La condición debe ser uno de los siguientes valores: KG, UND' 
+    })
+    readonly condition: string;
+
+    @IsNumber({}, { message: 'El costo debe ser un número' })
+    @IsNotEmpty({ message: 'El costo es requerido' })
+    readonly cost: number;
+
+    @IsNumber({}, { message: 'El margen referencial debe ser un número' })
+    @IsNotEmpty({ message: 'El margen referencial es requerido' })
+    @Max(100, { message: 'El margen referencial no puede ser mayor a 100' })
+    readonly benchmark: number;
+
+    @IsBoolean({ message: 'El impuesto debe ser un valor booleano (true/false)' })
+    readonly tax: boolean;
+
+    constructor(partial: Partial<UpdateFichaDto>) {
         Object.assign(this, partial);
     }
 }
