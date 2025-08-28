@@ -9,14 +9,21 @@ export class ProviderRepositoryAdapter implements ProviderRepository {
 
     async save(provider: Provider): Promise<Provider> {
         const providerPrimitives = provider.toPrimitives()
+        
+        const createData = {
+            ...providerPrimitives,
+            is_active: providerPrimitives.is_active ?? undefined,
+        };
+
         const createdProvider = await this.prisma.providers.upsert({
             where: {
                 id: providerPrimitives.id
             },
-            create: providerPrimitives,
+            create: createData,
             update: {
                 name: providerPrimitives.name,
                 description: providerPrimitives.description,
+                is_active: providerPrimitives.is_active ?? undefined,
             }
         })
 

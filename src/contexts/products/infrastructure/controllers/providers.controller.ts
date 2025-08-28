@@ -2,6 +2,7 @@ import { Controller, Post, UsePipes, ValidationPipe, Body, Get, Query } from "@n
 import { CreateProviderUseCase } from "../../application/providers/create-provider.usecase";
 import { CreateProviderDto } from "../dtos/providers/create-provider.dto";
 import { GetAllProvidersUseCase } from "../../application/providers/get-all-providers.usecase";
+import { Permissions } from "@/src/common/decorators/permissions.decorator";
 
 @Controller('providers')
 export class ProvidersController {
@@ -11,12 +12,14 @@ export class ProvidersController {
     ) {}
 
     @Post('create')
+    @Permissions('provider:create')
     @UsePipes(new ValidationPipe({ transform: true }))
     async create(@Body() provider: CreateProviderDto) {
         return this.createProviderUseCase.execute(provider);
     }
 
     @Get('all')
+    @Permissions('provider:read')
     async getAllProviders(@Query() query: { store_id: string, skip: string, take: string }) {
         if (!query.store_id) throw new Error('Store ID is required')
         if (!query.skip || !query.take) query.skip = '0'; query.take = '10'
