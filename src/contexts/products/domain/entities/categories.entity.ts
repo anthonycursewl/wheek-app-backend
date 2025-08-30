@@ -6,6 +6,7 @@ export interface CategoryPrimitives {
     created_at: Date;
     updated_at: Date;
     store_id: string;
+    is_active: boolean;
 }
 
 export class Category {
@@ -14,19 +15,22 @@ export class Category {
     private readonly created_at: Date;
     private readonly updated_at: Date;
     private readonly store_id: string;
+    private readonly is_active: boolean;
 
     private constructor(
         id: string,
         name: string,
         created_at: Date,
         updated_at: Date,
-        store_id: string
+        store_id: string,
+        is_active: boolean = true
     ) {
         this.id = id;
         this.name = name;
         this.created_at = created_at;
         this.updated_at = updated_at;
         this.store_id = store_id;
+        this.is_active = is_active;
     }
 
     public static create(data: Omit<CategoryPrimitives, 'id' | 'created_at' | 'updated_at'>): Category {
@@ -36,17 +40,19 @@ export class Category {
             data.name.trim(),
             new Date(),
             new Date(),
-            data.store_id
+            data.store_id,
+            data.is_active ?? true
         );
     }
 
-    public update(data: Omit<CategoryPrimitives, 'id' | 'created_at' | 'updated_at'>): Category {
+    public static update(data: Omit<CategoryPrimitives, 'updated_at'>): Category {
         return new Category(
-            this.id,
+            data.id,
             data.name.trim(),
-            this.created_at,
+            data.created_at,
             new Date(),
-            data.store_id
+            data.store_id,
+            data.is_active
         );
     }
 
@@ -57,6 +63,7 @@ export class Category {
             created_at: this.created_at,
             updated_at: this.updated_at,
             store_id: this.store_id,
+            is_active: this.is_active,
         };
     }
 
@@ -66,7 +73,8 @@ export class Category {
             primitives.name,
             primitives.created_at,
             primitives.updated_at,
-            primitives.store_id
+            primitives.store_id,
+            primitives.is_active
         );
     }
 }
