@@ -1,14 +1,18 @@
-import { Post, Body, UsePipes, ValidationPipe, Controller, Get, Query, Param } from "@nestjs/common";
+import { Post, Body, UsePipes, ValidationPipe, Controller, Get, Query, Param, Put } from "@nestjs/common";
 import { CreateCategoryUseCase } from "../../application/categories/create-category.usecase";
 import { CreateCategoryDto } from "../dtos/categories/create-category.dto";
 import { GetAllCategoriesUseCase } from "../../application/categories/get-all-categories.usecase";
 import { Permissions } from "@/src/common/decorators/permissions.decorator";
+import { CategoryPrimitives } from "../../domain/entities/categories.entity";
+import { UpdateCategoryUseCase } from "../../application/categories/update-category.usecase";
+import { failure } from "@/src/contexts/shared/ROP/result";
 
 @Controller('categories')
 export class CategoryController {
     constructor(
         private readonly createCategoryUseCase: CreateCategoryUseCase,
-        private readonly getAllCategoriesUseCase: GetAllCategoriesUseCase
+        private readonly getAllCategoriesUseCase: GetAllCategoriesUseCase,
+        private readonly updateCategoryUseCase: UpdateCategoryUseCase
     ) {}
 
     @Post('create')
@@ -23,5 +27,13 @@ export class CategoryController {
     async getAllCategoriesByStoreId(@Query() query: { skip: string, take: string }, @Param('store_id') store_id: string) {
         if (!query.skip || !query.take) query.skip = '0'; query.take = '10'
         return await this.getAllCategoriesUseCase.execute(store_id, Number(query.skip), Number(query.take));
+    }
+
+    @Put('update/:id')
+    @Permissions('category:update')
+    async update(@Param('id') id: string, @Body() category: CategoryPrimitives) {
+        if (!category.name) return failure(new Error('Name is required'))
+        if (!id) return failure(new Error('Wheek | El ID es requerido para actualizar. Intenta de nuevo.'))
+        return await this.updateCategoryUseCase.execute(id, category);
     }
 }
