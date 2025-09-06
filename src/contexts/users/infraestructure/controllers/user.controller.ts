@@ -22,7 +22,7 @@ export class UserController {
             throw new UnauthorizedException('Token is required');
         }
 
-        const decoded = await this.verifyUseCase.execute(token, process.env.JWT_SECRET || '');
+        const decoded = await this.verifyUseCase.execute(token, process.env.JWT_ACCESS_SECRET || '');
         if (!decoded.isSuccess) {
             throw new UnauthorizedException(decoded.error.message);
         }
