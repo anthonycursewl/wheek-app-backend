@@ -2,7 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { failure, Result, success } from "../../shared/ROP/result";
 import { StoreRepository } from "../domain/repos/store.repository";
 import { Store } from "../domain/entities/store.entity";
-import { Transaction } from "@shared/persistance/transactions";
+import { Transaction } from "@/src/contexts/shared/persistance/transactions";
 import { STORE_REPOSITORY } from "../domain/repos/store.repository";
 
 
