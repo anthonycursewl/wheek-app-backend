@@ -1,127 +1,174 @@
-import { UserRole } from "@users/domain/value-objects/user-role.vo";
-export interface UserData {
+import * as bcrypt from 'bcrypt';
+
+const SALT_ROUNDS = 10;
+
+export interface UserPrimitive {
   id: string;
   email: string;
-  password: string;
-  role: UserRole;
   name: string;
   last_name: string;
   username: string;
+  password: string;
   created_at: Date;
+  updated_at?: Date;
+  deleted_at?: Date;
   is_active: boolean;
-  icon_url: string;
+  icon_url?: string;
 }
 
 export class User {
   private constructor(
     private readonly id: string,
-    private readonly email: string,
-    private readonly password: string,
-    private readonly role: UserRole,
-    private readonly name: string,
-    private readonly last_name: string,
-    private readonly username: string,
+    private email: string,
+    private password: string,
+    private name: string,
+    private last_name: string,
+    private username: string,
     private readonly created_at: Date,
-    private readonly is_active: boolean,
-    private readonly icon_url: string,
+    private updated_at?: Date,
+    private deleted_at?: Date,
+    private is_active: boolean = true,
+    private icon_url?: string,
   ) {}
 
-  static create(data: Omit<UserData, 'id' | 'created_at' | 'is_active' | 'icon_url'>): User {
+  static async create(data: Omit<UserPrimitive, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'is_active' | 'icon_url'>): Promise<User> {
+    const hashedPassword = await this.hashPassword(data.password);
     return new User(
       crypto.randomUUID().split('-')[4],
       data.email,
-      data.password,
-      data.role,
+      hashedPassword,
       data.name,
       data.last_name,
       data.username,
       new Date(),
-      true,
-      '',
     );
   }
 
-  static fromPrimitives(data: UserData): User {
+  static fromPrimitives(data: UserPrimitive): User {
     return new User(
       data.id,
       data.email,
       data.password,
-      data.role,
       data.name,
       data.last_name,
       data.username,
       data.created_at,
+      data.updated_at,
+      data.deleted_at,
       data.is_active,
       data.icon_url,
     );
   }
 
-  toPrimitives(): UserData {
+  toPrimitives(): UserPrimitive {
     return {
       id: this.id,
       email: this.email,
       password: this.password,
-      role: this.role,
       name: this.name,
       last_name: this.last_name,
       username: this.username,
       created_at: this.created_at,
+      updated_at: this.updated_at,
+      deleted_at: this.deleted_at,
       is_active: this.is_active,
       icon_url: this.icon_url,
     };
   }
 
-  getId(): string {
+  async comparePassword(password: string): Promise<boolean> {
+    return bcrypt.compare(password, this.password);
+  }
+
+  private static async hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password, SALT_ROUNDS);
+  }
+
+  // Getters
+  get idValue(): string {
     return this.id;
   }
 
-  getEmail(): string {
+  get emailValue(): string {
     return this.email;
   }
 
-  getPassword(): string {
+  get passwordValue(): string {
     return this.password;
   }
 
-  getRole(): UserRole {
-    return this.role;
-  }
-
-  getName(): string {
+  get nameValue(): string {
     return this.name;
   }
 
-  getLastName(): string {
+  get lastNameValue(): string {
     return this.last_name;
   }
 
-  getUsername(): string {
+  get usernameValue(): string {
     return this.username;
   }
 
-  getCreatedAt(): Date {
+  get createdAtValue(): Date {
     return this.created_at;
   }
 
-  getIsActive(): boolean {
+  get updatedAtValue(): Date | undefined {
+    return this.updated_at;
+  }
+
+  get deletedAtValue(): Date | undefined {
+    return this.deleted_at;
+  }
+
+  get isActiveValue(): boolean {
     return this.is_active;
   }
 
-  getIconUrl(): string {
+  get iconUrlValue(): string | undefined {
     return this.icon_url;
   }
-} 
 
-/*
-User example
+  // Setters
+  updateEmail(email: string): void {
+    this.email = email;
+    this.updated_at = new Date();
+  }
 
-{
-  "email": "zerpaanthony.wx@breadriuss.com",
-  "password": "perritoconollo12",
-  "role": "USER",
-  "name": "Anthony",
-  "last_name": "Cursewl",
-  "username": "anthonycursewl",
+  updatePassword(password: string): void {
+    this.password = password;
+    this.updated_at = new Date();
+  }
+
+  updateName(name: string): void {
+    this.name = name;
+    this.updated_at = new Date();
+  }
+
+  updateLastName(lastName: string): void {
+    this.last_name = lastName;
+    this.updated_at = new Date();
+  }
+
+  updateUsername(username: string): void {
+    this.username = username;
+    this.updated_at = new Date();
+  }
+
+  updateIconUrl(iconUrl: string): void {
+    this.icon_url = iconUrl;
+    this.updated_at = new Date();
+  }
+
+  deactivate(): void {
+    this.is_active = false;
+    this.deleted_at = new Date();
+    this.updated_at = new Date();
+  }
+
+  activate(): void {
+    this.is_active = true;
+    this.deleted_at = undefined;
+    this.updated_at = new Date();
+  }
 }
-
-*/
