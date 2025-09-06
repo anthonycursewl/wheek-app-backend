@@ -1,6 +1,5 @@
-import { INestApplication, Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { softDeleteMiddleware } from './soft-delete.middleware';
 
 type PrismaModel = {
   findMany: (args?: any) => Promise<any[]>;
@@ -15,19 +14,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     super({
       log: ['query', 'info', 'warn', 'error'],
     });
-    this.$use(softDeleteMiddleware());
   }
 
   async onModuleInit() {
     await this.$connect();
   }
-
-  async enableShutdownHooks(app: INestApplication) {
-    // For Prisma 5.0.0+, we don't need to handle shutdown hooks
-    // as the library engine handles cleanup automatically
-  }
-
-  // Helper method for including soft-deleted records when needed
+  
   getClient() {
     return this.$extends({
       query: {
@@ -81,7 +73,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     });
   }
 
-  // Helper to include soft-deleted records when explicitly needed
   withSoftDelete<T extends PrismaModel>(model: T) {
     return {
       ...model,
@@ -101,5 +92,4 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
   }
 }
 
-// Export a singleton instance of the Prisma Client
 export const prisma = new PrismaService();
