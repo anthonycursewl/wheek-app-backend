@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common";
 import { Category } from "../../domain/entities/categories.entity";
 import { CategoryRepository } from "../../domain/repos/category.repository";
 import { PrismaService } from "@/src/shared/persistance";
-import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class CategoryRepositoryAdapter implements CategoryRepository {
