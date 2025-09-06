@@ -1,5 +1,5 @@
 import { Store } from "../entities/store.entity";
-import { Transaction } from "@shared/persistance/transactions";
+import { Transaction } from "@/src/contexts/shared/persistance/transactions";
 
 export interface StoreRepository {
     create(store: Store, tx?: Transaction): Promise<Store>;

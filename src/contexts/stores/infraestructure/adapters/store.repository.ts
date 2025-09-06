@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Transaction } from '@shared/persistance/transactions';
+import { Transaction } from '@/src/contexts/shared/persistance/transactions';
 import { PrismaService } from '@shared/persistance/prisma.service';
 import { PrismaClient } from '@prisma/client';
 import { StoreRepository } from '../../domain/repos/store.repository';
 import { Store } from '../../domain/entities/store.entity';
 import { StoreData } from '../../domain/entities/store.entity';
-import { StoreMember } from '../../domain/entities/store-member.entity';
 
 @Injectable()
 export class StoreRepositoryAdapter implements StoreRepository {
@@ -25,36 +24,12 @@ export class StoreRepositoryAdapter implements StoreRepository {
     async create(store: Store, tx?: Transaction): Promise<Store> {
         const client = tx as PrismaClient || this.prisma;
         try {
-            const storeData = store.toPrimitive()
-            console.log(storeData)
-            const storeMember = StoreMember.create({
-                user_id: storeData.owner,
-                store_id: storeData.id,
-            })
-            const storeMemberData = storeMember.toPrimitive()
-            console.log(storeMemberData)
-
             const created = await client.stores.create({
-                data: { 
-                    ...storeData,
-                    store_members: {
-                        create: {
-                            id: storeMemberData.id,
-                            created_at: storeMemberData.created_at,
-                            is_member_active: storeMemberData.is_member_active,
-                            users: {
-                                connect: {
-                                    id: storeData.owner
-                                }
-                            }
-                        }
-                    }
-                }
-            })
+                data: store.toPrimitive(),
+            });
 
             return this.mapPrismaStoreToDomain(created);
         } catch (error) {
-            console.log(error)
             throw error;
         }
     }
@@ -100,12 +75,19 @@ export class StoreRepositoryAdapter implements StoreRepository {
             const stores = await client.stores.findMany({
                 where: {
                     is_active: true,
-                    store_members: {
-                        some: {
-                            user_id: id,
-                            is_member_active: true,
+                    OR: [
+                        {
+                            owner: id
+                        },
+                        {
+                            user_roles: {
+                                some: {
+                                    user_id: id,
+                                    is_active: true
+                                }
+                            }
                         }
-                    }
+                    ]
                 },
                 select: {
                     id: true,

@@ -1,49 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from '@users/domain/repos/user.repository';
-import { User, UserData } from '@users/domain/entitys/user.entity';
-import { Transaction } from '@shared/persistance/transactions';
+import { User, UserPrimitive } from '@users/domain/entitys/user.entity';
+import { Transaction } from '@/src/contexts/shared/persistance/transactions';
 import { PrismaService } from '@shared/persistance/prisma.service';
-import { PrismaClient } from '@prisma/client';
-import { UserRole, UserRoleEnum } from '@users/domain/value-objects/user-role.vo';
+import { PrismaClient, users } from '@prisma/client';
 
 @Injectable()
 export class UserRepositoryAdapter implements UserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  private mapPrismaUserToDomain(user: any): User {
+  private mapPrismaUserToDomain(user: users): User {
     return User.fromPrimitives({
-      id: user.id,
-      email: user.email,
-      password: user.password,
-      role: UserRole.create(user.role as UserRoleEnum),
-      name: user.name,
-      last_name: user.last_name,
-      username: user.username,
-      created_at: user.created_at,
-      is_active: user.is_active,
-      icon_url: user.icon_url,
+      ...user,
+      updated_at: user.updated_at ?? undefined,
+      deleted_at: user.deleted_at ?? undefined,
+      icon_url: user.icon_url ?? undefined,
     });
   }
 
   async create(user: User, tx?: Transaction): Promise<User> {
     const client = tx as PrismaClient || this.prisma;
     try {
-      const created = await client.users.create({
-        data: {
-          id: user.getId(),
-          name: user.getName(),
-          last_name: user.getLastName(),
-          username: user.getUsername(),
-          email: user.getEmail(),
-          password: user.getPassword(),
-          role: user.getRole().getValue(),
-          created_at: user.getCreatedAt(),
-          is_active: user.getIsActive(),
-          icon_url: user.getIconUrl(),
-        },
-      });
-
-      return this.mapPrismaUserToDomain(created);
+      const created = await client.users.create({ data: { id: user.idValue, name: user.nameValue, last_name: user.lastNameValue, username: user.usernameValue, email: user.emailValue, password: user.passwordValue, created_at: user.createdAtValue, is_active: user.isActiveValue, icon_url: user.iconUrlValue, }, });
+      return (await this.findById(created.id, tx))!;
     } catch (error) {
       throw error;
     }
@@ -77,21 +56,26 @@ export class UserRepositoryAdapter implements UserRepository {
     }
   }
 
+  async findByUsername(username: string, tx?: Transaction): Promise<boolean | null> {
+    const client = tx as PrismaClient || this.prisma;
+    try {
+      const found = await client.users.findUnique({
+        where: { username: username },
+        select: { id: true }
+      });
+
+      if (!found) return false;
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async update(user: User, tx?: Transaction): Promise<User> {
     const client = tx as PrismaClient || this.prisma;
     try {
-      const updated = await client.users.update({
-        where: { id: user.getId() },
-        data: {
-          email: user.getEmail(),
-          password: user.getPassword(),
-          role: user.getRole().getValue(),
-          is_active: user.getIsActive(),
-          icon_url: user.getIconUrl(),
-        },
-      });
-
-      return this.mapPrismaUserToDomain(updated);
+      await client.users.update({ where: { id: user.idValue }, data: { name: user.nameValue, last_name: user.lastNameValue, email: user.emailValue, password: user.passwordValue, is_active: user.isActiveValue, icon_url: user.iconUrlValue, updated_at: user.updatedAtValue, }, });
+      return (await this.findById(user.idValue, tx))!;
     } catch (error) {
       throw error;
     }
