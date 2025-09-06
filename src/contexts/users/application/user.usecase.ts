@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { failure, success, Result } from '@shared/ROP/result';
+import { failure, success, Result } from '@/src/contexts/shared/ROP/result';
 import { UserRepository } from '@users/domain/repos/user.repository';
 import { USER_REPOSITORY } from '@users/domain/repos/user.repository';
 import { Inject } from '@nestjs/common';

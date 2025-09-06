@@ -1,7 +1,7 @@
 
 import { Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { failure, Result, success } from "@shared/ROP/result";
+import { failure, Result, success } from "@/src/contexts/shared/ROP/result";
 
 @Injectable()
 export class VerifyUseCase {
