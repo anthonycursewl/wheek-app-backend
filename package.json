@@ -118,8 +118,5 @@
         "statements": 80
       }
     }
-  },
-  "prisma": {
-    "seed": "ts-node prisma/seed.ts"
   }
 }
