@@ -15,6 +15,7 @@ import { PERMISSION_REPOSITORY } from "./domain/repos/permission.repository";
 import { PermissionRepositoryAdapter } from "./infraestructure/adapters/permission.repository";
 import { CreateRoleUseCase } from "./application/create-role-usecase";
 import { GetRoleByIdUseCase } from "./application/get-role-by-id.usecase";
+import { UpdateRoleUseCase } from "./application/update-role.usecase";
 
 @Module({
     imports: [],
@@ -40,7 +41,8 @@ import { GetRoleByIdUseCase } from "./application/get-role-by-id.usecase";
         GetRolesByStoreIdUseCase,
         GetPermissionsUseCase,
         CreateRoleUseCase,
-        GetRoleByIdUseCase
+        GetRoleByIdUseCase,
+        UpdateRoleUseCase
     ],
     exports: [],
 })
