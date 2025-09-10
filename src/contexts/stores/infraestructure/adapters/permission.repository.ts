@@ -35,4 +35,31 @@ export class PermissionRepositoryAdapter implements PermissionRepository {
         });
         return permissionsIds;
     }
+
+    async assignPermissions(role_id: string, permissions: { id: string }[]): Promise<void> {
+            try {
+                await this.prisma.$transaction(async (prisma) => {
+                    await prisma.role_permission.deleteMany({
+                        where: {
+                            role_id,
+                        }
+                    })
+
+                    await prisma.role_permission.createMany({
+                        data: permissions.map((p) => ({
+                            role_id,
+                            permission_id: p.id,
+                        }))
+                    })
+                })
+            } catch (error: any) {
+                if (error.code === 'P2023' || error.message?.includes('invalid input syntax for type uuid')) {
+                    throw new Error('El ID de la tienda proporcionado no es un UUID válido.');
+                }
+                if (error.code?.startsWith('P2') || error instanceof Error) {
+                    throw new Error(`Error de base de datos: ${error.message}`);
+                }
+                throw new Error('Error inesperado al asignar los permisos');
+            }
+        }
 }

@@ -3,7 +3,7 @@ import { Role } from "@/src/contexts/users/domain/entitys/role.entity";
 export interface RoleWithPermissions {
     id: string;
     name: string;
-    description?: string;
+    description?: string | null;
     is_active: boolean;
     created_at: Date;
     permissions: Array<{
@@ -13,6 +13,7 @@ export interface RoleWithPermissions {
         }
     }>;
 }
+
 
 export interface RoleAllData {
     id: string;
@@ -33,6 +34,7 @@ export interface RoleAllData {
 
 export interface RoleRepository {
     create(role: Role): Promise<Role>;
+    update(id: string, role: Role): Promise<RoleWithPermissions>;
     findAllByStoreId(store_id: string, skip: number, take: number): Promise<RoleWithPermissions[]>;
     assignPermissions(role_id: string, permissions: { id: string }[]): Promise<RoleWithPermissions>;
     findUnique(id: string): Promise<RoleAllData>;
