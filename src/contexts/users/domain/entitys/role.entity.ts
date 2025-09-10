@@ -1,6 +1,7 @@
 import { Store } from "@/src/contexts/stores/domain/entities/store.entity";
 import { UserRole } from "./user-role.entity";
 import { RolePermission, RolePermissionPrimitive } from "./role-permission.entity";
+import { get } from "http";
 
 export interface RolePrimitive {
     id: string;
@@ -24,7 +25,7 @@ export class Role {
         private name: string,
         private store_id: string,
         private readonly created_at: Date,
-        private description?: string,
+        private description?: string | null,
         private updated_at?: Date,
         private deleted_at?: Date,
         private is_active: boolean = true,
@@ -46,6 +47,19 @@ export class Role {
             undefined,
             true,
         );
+    }
+
+    static update(data: Omit<RolePrimitive, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'permissions'>) {
+        return new Role(
+            '',
+            data.name.trim(),
+            data.store_id,
+            new Date(),
+            data.description?.trim() || '',
+            new Date(),
+            new Date(),
+            data.is_active,
+        )
     }
 
     static fromPrimitive(data: RolePrimitive): Role {
@@ -71,7 +85,7 @@ export class Role {
             id: this.id,
             name: this.name,
             store_id: this.store_id,
-            description: this.description,
+            description: this.description || '',
             created_at: this.created_at,
             updated_at: this.updated_at,
             deleted_at: this.deleted_at,
@@ -97,7 +111,7 @@ export class Role {
     }
 
     getDescription(): string | undefined {
-        return this.description;
+        return this.description || '';
     }
 
     getUpdatedAt(): Date | undefined {

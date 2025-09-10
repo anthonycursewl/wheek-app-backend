@@ -18,6 +18,8 @@ import { GetAllProductsUseCase } from "./application/products/get-all-products.u
 import { UpdateProductUseCase } from "./application/products/update-product.usecase";
 import { DeleteProductUseCase } from "./application/products/delete-product.usecase";
 import { UpdateCategoryUseCase } from "./application/categories/update-category.usecase";
+import { UpdateProviderUseCase } from "./application/providers/update-provider.usecase";
+import { SoftDeleteProviderUseCase } from "./application/providers/soft-delete-provider.usecase";
 
 @Module({
     imports: [],
@@ -44,7 +46,9 @@ import { UpdateCategoryUseCase } from "./application/categories/update-category.
         GetAllProductsUseCase,
         UpdateProductUseCase,
         DeleteProductUseCase,
-        UpdateCategoryUseCase
+        UpdateCategoryUseCase,
+        UpdateProviderUseCase,
+        SoftDeleteProviderUseCase
     ]
 })
 export class ProductsModule {}

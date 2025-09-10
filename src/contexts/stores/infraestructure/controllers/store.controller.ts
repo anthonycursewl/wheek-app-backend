@@ -1,5 +1,5 @@
 // interfaces and common
-import { BadRequestException, Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Param, Post, Put, Query } from "@nestjs/common";
 import { StoreData } from "../../domain/entities/store.entity";
 import { Store } from "../../domain/entities/store.entity";
 
@@ -20,6 +20,7 @@ import { CreateRoleUseCase } from "../../application/create-role-usecase";
 // DTOs
 import { RoleDto } from "../dtos/role.dto";
 import { GetRoleByIdUseCase } from "../../application/get-role-by-id.usecase";
+import { UpdateRoleUseCase } from "../../application/update-role.usecase";
 
 @Controller('stores')
 export class StoreController {
@@ -31,7 +32,8 @@ export class StoreController {
         private readonly getRolesByStoreIdUseCase: GetRolesByStoreIdUseCase,
         private readonly getPermissionsUseCase: GetPermissionsUseCase,
         private readonly createRoleUseCase: CreateRoleUseCase,
-        private readonly getRoleByIdUseCase: GetRoleByIdUseCase
+        private readonly getRoleByIdUseCase: GetRoleByIdUseCase,
+        private readonly updateRoleUseCase: UpdateRoleUseCase
     ) {}
 
     @Post('create')
@@ -64,6 +66,14 @@ export class StoreController {
 
         if (!result.isSuccess) throw new BadRequestException('Wheek | Ha ocurrido un error al actualizar la tienda.');
         return result;
+    }
+
+    @Put('update/role/:id')
+    async updateRole(@Param('id') id: string, @Body() data: RoleDto) {
+        if (!id) throw new BadRequestException('Wheek | ID Inválido.');
+        const r = await this.updateRoleUseCase.execute(id, data, data.permissions)
+        if (!r.isSuccess) throw new BadRequestException(`Wheek | ${r.error.message}`);
+        return r;
     }
 
     @Get('get/:id')

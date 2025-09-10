@@ -154,9 +154,47 @@ export class RoleRepositoryAdapter implements RoleRepository {
             if (!role) {
                 throw new Error('Role not found');
             }
-            return role;
+            return role as RoleAllData;
         } catch (error) {
             throw new Error('Error inesperado al obtener el role');
+        }
+    }
+
+    async update(id: string, role: Role): Promise<RoleWithPermissions> {
+        try {
+            const rolePrimitive = role.toPrimitive()
+           const updated = await this.prisma.roles.update({
+            where: {
+                id,
+            },
+            data: {
+                name: rolePrimitive.name,
+                description: rolePrimitive.description,
+                is_active: rolePrimitive.is_active,
+                updated_at: rolePrimitive.updated_at,
+            },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                is_active: true,
+                created_at: true,
+                permissions: {
+                    select: {
+                        permission: {
+                            select: {
+                                resource: true,
+                                action: true
+                            }
+                        }
+                    }
+                }
+            }
+           })
+
+           return updated as RoleWithPermissions;
+        } catch (error) {
+            throw new Error('Error inesperado al actualizar el role');
         }
     }
 }

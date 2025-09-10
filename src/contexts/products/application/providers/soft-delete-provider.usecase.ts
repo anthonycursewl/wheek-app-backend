@@ -1,21 +1,22 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { PROVIDER_REPOSITORY, ProviderRepository } from "../../domain/repos/provider.repository";
-import { Provider, ProviderPrimitives } from "../../domain/entities/provider.entity";
+import { Provider } from "../../domain/entities/provider.entity";
 import { Result, success, failure } from "@/src/contexts/shared/ROP/result";
 
 @Injectable()
-export class CreateProviderUseCase {
+export class SoftDeleteProviderUseCase {
     constructor(
         @Inject(PROVIDER_REPOSITORY)
         private readonly providerRepository: ProviderRepository
     ) {}
 
-    async execute(data: Omit<ProviderPrimitives, 'id' | 'created_at' | 'deleted_at' | 'updated_at'>): Promise<Result<Provider, Error>> {
+    async execute(id: string): Promise<Result<Provider | null, Error>> {
         try {
-            const result = await this.providerRepository.save(Provider.create(data));
-            return success(result);
+            const result = await this.providerRepository.delete(id)
+            if (!result) throw new Error('Provider not found')
+            return success(result)
         } catch (error) {
-            return failure(error as Error);
+            return failure(error)
         }
     }
 }

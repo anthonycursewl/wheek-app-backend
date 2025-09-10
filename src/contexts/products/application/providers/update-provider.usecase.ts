@@ -4,18 +4,18 @@ import { Provider, ProviderPrimitives } from "../../domain/entities/provider.ent
 import { Result, success, failure } from "@/src/contexts/shared/ROP/result";
 
 @Injectable()
-export class CreateProviderUseCase {
+export class UpdateProviderUseCase {
     constructor(
         @Inject(PROVIDER_REPOSITORY)
         private readonly providerRepository: ProviderRepository
     ) {}
 
-    async execute(data: Omit<ProviderPrimitives, 'id' | 'created_at' | 'deleted_at' | 'updated_at'>): Promise<Result<Provider, Error>> {
+    async execute(id: string, provider: Omit<ProviderPrimitives, 'id' | 'updated_at' | 'deleted_at' | 'created_at'>): Promise<Result<Provider, Error>> {
         try {
-            const result = await this.providerRepository.save(Provider.create(data));
-            return success(result);
+            const result = await this.providerRepository.save(Provider.update(id, provider))
+            return success(result)
         } catch (error) {
-            return failure(error as Error);
+            return failure(error as Error)
         }
     }
 }
