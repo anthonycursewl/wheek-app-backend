@@ -15,6 +15,14 @@ export interface CreateProductData extends Omit<ProductPrimitive, 'created_at' |
     w_ficha: Omit<FichaPrimitive, 'id' | 'product_id'>;
 }
 
+export interface ProductSearchResult {
+    id: string;
+    name: string;
+    barcode: string;
+    cost: number;
+    benchmark: number;
+}
+
 export class Product {
     private readonly id: string;
     private readonly barcode: string;

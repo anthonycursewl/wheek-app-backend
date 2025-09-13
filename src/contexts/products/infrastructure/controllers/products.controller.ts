@@ -8,6 +8,7 @@ import { DeleteProductDto } from '../dtos/products/delete-product.dto';
 import { DeleteProductUseCase } from '../../application/products/delete-product.usecase';
 import { Permissions } from '@/src/common/decorators/permissions.decorator';
 import { ProductPrimitive } from '../../domain/entities/product.entity';
+import { SearchProductUseCase } from '../../application/products/search-product.usecase';
 
 @Controller('products')
 export class ProductController {
@@ -16,6 +17,7 @@ export class ProductController {
         private readonly getAllProductsUseCase: GetAllProductsUseCase,
         private readonly updateProductUseCase: UpdateProductUseCase,
         private readonly deleteProductUseCase: DeleteProductUseCase,
+        private readonly searchProductUseCase: SearchProductUseCase 
     ) {}
     
     /**
@@ -140,6 +142,20 @@ export class ProductController {
             throw new BadRequestException(result.error?.message || 'Error al eliminar el producto');
         }
  
+        return result;
+    }
+
+    @Get('search')
+    @Permissions('product:read')
+    async search(
+        @Query() query: { store_id: string, q: string },
+    ) {
+        if (!query.store_id || !query.q) throw new BadRequestException('El store_id y query "q" son requeridos')
+        
+        const result = await this.searchProductUseCase.execute(query.store_id, query.q);
+        if (!result.isSuccess) {
+            throw new BadRequestException(result.error?.message || 'Error al buscar el producto');
+        }
         return result;
     }
 }

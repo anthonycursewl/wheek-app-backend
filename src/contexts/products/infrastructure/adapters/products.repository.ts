@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ProductRepository } from "../../domain/repos/product.repository";
 import { PrismaService } from "@/src/contexts/shared/persistance/prisma.service";
-import { Product, ProductPrimitive } from "../../domain/entities/product.entity";
+import { Product, ProductPrimitive, ProductSearchResult } from "../../domain/entities/product.entity";
 import { Prisma } from "@prisma/client";
 
 type ProductWithFicha = Prisma.productsGetPayload<{
@@ -171,5 +171,33 @@ export class ProductRepositoryAdapter implements ProductRepository {
         });
 
         return product;
+    }
+
+    async search(store_id: string, q: string): Promise<ProductSearchResult[] | []> {
+        const products = await this.prisma.products.findMany({
+            take: 15,
+            where: {
+                store_id: store_id,
+                is_active: true,
+                OR: [
+                    { name: { contains: q, mode: 'insensitive' } },
+                    { barcode: { equals: q } },
+                ]
+            },
+            select: {
+                id: true,
+                name: true,
+                barcode: true,
+                w_ficha: { select: { cost: true, benchmark: true } }
+            }
+        })
+
+        return products.map(product => ({
+            id: product.id,
+            name: product.name,
+            barcode: product.barcode,
+            cost: Number(product.w_ficha?.cost),
+            benchmark: Number(product.w_ficha?.benchmark)
+        }))
     }
 }

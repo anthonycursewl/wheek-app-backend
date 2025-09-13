@@ -20,6 +20,7 @@ import { DeleteProductUseCase } from "./application/products/delete-product.usec
 import { UpdateCategoryUseCase } from "./application/categories/update-category.usecase";
 import { UpdateProviderUseCase } from "./application/providers/update-provider.usecase";
 import { SoftDeleteProviderUseCase } from "./application/providers/soft-delete-provider.usecase";
+import { SearchProductUseCase } from "./application/products/search-product.usecase";
 
 @Module({
     imports: [],
@@ -48,7 +49,8 @@ import { SoftDeleteProviderUseCase } from "./application/providers/soft-delete-p
         DeleteProductUseCase,
         UpdateCategoryUseCase,
         UpdateProviderUseCase,
-        SoftDeleteProviderUseCase
+        SoftDeleteProviderUseCase,
+        SearchProductUseCase
     ]
 })
 export class ProductsModule {}

@@ -7,37 +7,54 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// * ========================================
+/// * CORE MODELS (Stores, Users, Auth)
+/// * ========================================
+
 model stores {
-  id          String        @id @db.Uuid
-  name        String        @db.VarChar(255)
-  description String?       @db.VarChar(255)
-  is_active   Boolean       @default(true)
-  created_at  DateTime      @db.Timestamptz(6)
-  owner       String        @db.VarChar(255)
-  categories  categories[]
-  invitations invitations[]
-  products    products[]
-  providers   providers[]
-  roles       roles[]
-  owner_user  users         @relation(fields: [owner], references: [id], onDelete: Cascade, map: "user_id")
-  user_roles  user_roles[]
+  id          String   @id @db.Uuid
+  name        String   @db.VarChar(255)
+  description String?  @db.VarChar(255)
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  owner       String   @db.VarChar(255)
+
+  /// --- Relations ---
+  owner_user            users                   @relation(fields: [owner], references: [id], onDelete: Cascade, map: "user_id")
+  categories            categories[]
+  invitations           invitations[]
+  products              products[]
+  providers             providers[]
+  roles                 roles[]
+  user_roles            user_roles[]
+  inventory             inventory[]
+  receptions            receptions[]
+  inventory_adjustments inventory_adjustments[]
+  sales                 sales[]
+
+  @@index([owner])
 }
 
 model users {
-  id               String        @id @db.VarChar(255)
-  name             String        @db.VarChar(255)
-  last_name        String        @db.VarChar(255)
-  password         String
-  created_at       DateTime      @default(now()) @db.Timestamptz(6)
-  is_active        Boolean       @default(true)
-  icon_url         String?       @db.VarChar(255)
-  username         String        @unique @db.VarChar(255)
-  email            String        @unique(map: "email") @db.VarChar(255)
-  deleted_at       DateTime?     @db.Timestamptz(6)
-  updated_at       DateTime?     @updatedAt @db.Timestamptz(6)
-  invitations_sent invitations[] @relation("Inviter")
-  owned_stores     stores[]
-  user_roles       user_roles[]
+  id         String    @id @db.VarChar(255)
+  name       String    @db.VarChar(255)
+  last_name  String    @db.VarChar(255)
+  password   String
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  is_active  Boolean   @default(true)
+  icon_url   String?   @db.VarChar(255)
+  username   String    @unique @db.VarChar(255)
+  email      String    @unique(map: "email") @db.VarChar(255)
+  deleted_at DateTime? @db.Timestamptz(6)
+  updated_at DateTime? @updatedAt @db.Timestamptz(6)
+
+  /// --- Relations ---
+  invitations_sent      invitations[]           @relation("Inviter")
+  owned_stores          stores[]
+  user_roles            user_roles[]
+  receptions            receptions[]
+  inventory_adjustments inventory_adjustments[]
+  sales                 sales[]
 
   @@map("users")
 }
@@ -46,61 +63,72 @@ model user_roles {
   id         String    @id @default(uuid()) @db.Uuid
   user_id    String    @db.VarChar(255)
   role_id    String    @db.Uuid
+  store_id   String    @db.Uuid
+  is_active  Boolean   @default(true)
   created_at DateTime  @default(now()) @db.Timestamptz(6)
   updated_at DateTime? @updatedAt @db.Timestamptz(6)
   deleted_at DateTime? @db.Timestamptz(6)
-  is_active  Boolean   @default(true)
-  store_id   String    @db.Uuid
-  role       roles     @relation(fields: [role_id], references: [id], onDelete: Cascade)
-  store      stores    @relation(fields: [store_id], references: [id], onDelete: Cascade)
-  user       users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  /// --- Relations ---
+  role  roles  @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  store stores @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  user  users  @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, store_id], name: "user_store_role_unique")
+  @@index([user_id])
+  @@index([role_id])
+  @@index([store_id])
   @@map("user_roles")
 }
 
 model roles {
-  id          String            @id @default(uuid()) @db.Uuid
-  name        String            @db.VarChar(50)
-  description String?           @db.VarChar(255)
-  created_at  DateTime          @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime?         @updatedAt @db.Timestamptz(6)
-  deleted_at  DateTime?         @db.Timestamptz(6)
-  is_active   Boolean           @default(true)
-  store_id    String            @db.Uuid
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @db.VarChar(50)
+  description String?   @db.VarChar(255)
+  is_active   Boolean   @default(true)
+  store_id    String    @db.Uuid
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime? @updatedAt @db.Timestamptz(6)
+  deleted_at  DateTime? @db.Timestamptz(6)
+
+  /// --- Relations ---
+  store       stores            @relation(fields: [store_id], references: [id], onDelete: Cascade)
   invitations invitations[]
   permissions role_permission[]
-  store       stores            @relation(fields: [store_id], references: [id], onDelete: Cascade)
   user_roles  user_roles[]
 
   @@unique([name, store_id], name: "roles_name_store_unique")
+  @@index([store_id])
   @@map("roles")
 }
 
-/// * Tabla pivote simplificada para Role <-> Permission
 model role_permission {
-  role_id       String      @db.Uuid
-  permission_id String      @db.Uuid
-  permission    permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade)
-  role          roles       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  role_id       String @db.Uuid
+  permission_id String @db.Uuid
+
+  /// --- Relations ---
+  permission permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+  role       roles       @relation(fields: [role_id], references: [id], onDelete: Cascade)
 
   @@id([role_id, permission_id])
+  @@index([permission_id])
+  @@index([role_id])
 }
 
-/// * Modelo de permisos simplificado y programático
 model permissions {
-  id          String            @id @default(uuid()) @db.Uuid
-  description String?           @db.VarChar(255)
-  resource    String            @db.VarChar(100)
-  action      String            @db.VarChar(50)
-  created_at  DateTime          @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime?         @updatedAt @db.Timestamptz(6)
-  roles       role_permission[]
+  id          String    @id @default(uuid()) @db.Uuid
+  description String?   @db.VarChar(255)
+  resource    String    @db.VarChar(100)
+  action      String    @db.VarChar(50)
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime? @updatedAt @db.Timestamptz(6)
+
+  /// --- Relations ---
+  roles role_permission[]
 
   @@unique([action, resource])
 }
 
-/// * Nuevo modelo para gestionar las invitaciones
 model invitations {
   id            String           @id @default(uuid()) @db.Uuid
   email         String           @db.VarChar(255)
@@ -111,73 +139,276 @@ model invitations {
   status        InvitationStatus @default(PENDING)
   created_at    DateTime         @default(now()) @db.Timestamptz(6)
   expires_at    DateTime         @db.Timestamptz(6)
-  invited_by    users            @relation("Inviter", fields: [invited_by_id], references: [id], onDelete: Cascade)
-  role          roles            @relation(fields: [role_id], references: [id], onDelete: Cascade)
-  store         stores           @relation(fields: [store_id], references: [id], onDelete: Cascade)
+
+  /// --- Relations ---
+  invited_by users  @relation("Inviter", fields: [invited_by_id], references: [id], onDelete: Cascade)
+  role       roles  @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  store      stores @relation(fields: [store_id], references: [id], onDelete: Cascade)
 
   @@unique([email, store_id, status], name: "pending_invitation_unique")
+  @@index([store_id])
+  @@index([role_id])
+  @@index([invited_by_id])
 }
 
-/// * ----------------------------------------
-/// * BUSINESS LOGIC MODELS
-/// * ----------------------------------------
+
+/// * ========================================
+/// * BUSINESS LOGIC MODELS (Products, etc.)
+/// * ========================================
+
 model products {
-  id          String     @id @db.VarChar(255)
-  barcode     String     @db.VarChar(255)
-  name        String     @db.VarChar(255)
-  store_id    String     @db.Uuid
-  created_at  DateTime   @default(now()) @db.Timestamptz(6)
-  provider_id String     @db.VarChar(255)
-  category_id String     @db.Uuid
-  deleted_at  DateTime?  @db.Timestamptz(6)
-  is_active   Boolean    @default(true)
-  updated_at  DateTime?  @updatedAt @db.Timestamptz(6)
-  categories  categories @relation(fields: [category_id], references: [id], onDelete: Cascade, map: "category_id")
-  providers   providers  @relation(fields: [provider_id], references: [id], onDelete: Cascade, map: "provider_id")
-  stores      stores     @relation(fields: [store_id], references: [id], onDelete: Cascade, map: "store_id")
-  w_ficha     w_fichas?
+  id          String    @id @db.VarChar(255)
+  barcode     String    @db.VarChar(255)
+  name        String    @db.VarChar(255)
+  store_id    String    @db.Uuid
+  provider_id String    @db.VarChar(255)
+  category_id String    @db.Uuid
+  is_active   Boolean   @default(true)
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime? @updatedAt @db.Timestamptz(6)
+  deleted_at  DateTime? @db.Timestamptz(6)
+
+  /// --- Relations ---
+  stores           stores             @relation(fields: [store_id], references: [id], onDelete: Cascade, map: "store_id")
+  providers        providers          @relation(fields: [provider_id], references: [id], onDelete: Cascade, map: "provider_id")
+  categories       categories         @relation(fields: [category_id], references: [id], onDelete: Cascade, map: "category_id")
+  w_ficha          w_fichas?
+  inventory        inventory[]
+  reception_items  reception_items[]
+  adjustment_items adjustment_items[]
+  sale_items       sale_items[]
+
+  @@index([store_id])
+  @@index([provider_id])
+  @@index([category_id])
+  @@index([name])
+  @@index([barcode])
 }
 
 model w_fichas {
-  id         String   @id @db.Uuid
-  condition  String   @db.VarChar(255)
-  cost       Decimal  @db.Decimal(10, 2)
-  benchmark  Decimal  @db.Decimal(10, 2)
+  id         String  @id @db.Uuid
+  condition  String  @db.VarChar(255)
+  cost       Decimal @db.Decimal(10, 2)
+  benchmark  Decimal @db.Decimal(10, 2) /// Expected performance or quality metric
   tax        Boolean
-  product_id String   @unique @db.VarChar(255)
-  product    products @relation(fields: [product_id], references: [id], onDelete: Cascade, map: "product_id")
+  product_id String  @unique @db.VarChar(255)
+
+  /// --- Relations ---
+  product products @relation(fields: [product_id], references: [id], onDelete: Cascade, map: "product_id")
 }
 
 model categories {
-  id         String     @id @db.Uuid
-  name       String     @db.VarChar(255)
-  created_at DateTime   @db.Timestamptz(6)
-  updated_at DateTime   @db.Timestamptz(6)
-  store_id   String     @db.Uuid
-  is_active  Boolean    @default(true)
-  deleted_at DateTime?  @db.Timestamptz(6)
-  stores     stores     @relation(fields: [store_id], references: [id], onDelete: Cascade)
-  products   products[]
+  id         String    @id @db.Uuid
+  name       String    @db.VarChar(255)
+  store_id   String    @db.Uuid
+  is_active  Boolean   @default(true)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @updatedAt @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+
+  /// --- Relations ---
+  stores   stores     @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  products products[]
+
+  @@index([store_id])
 }
 
 model providers {
-  id            String     @id @db.VarChar(255)
-  name          String     @db.VarChar(255)
-  description   String?    @db.VarChar(255)
-  created_at    DateTime   @default(now()) @db.Timestamptz(6)
-  store_id      String     @db.Uuid
-  contact_phone String     @default("NO_CONTACT_PHONE") @db.VarChar(255)
-  contact_email String     @default("NO_CONTACT_EMAIL") @db.VarChar(255)
-  is_active     Boolean    @default(true)
-  deleted_at    DateTime?  @db.Timestamptz(6)
-  updated_at    DateTime?  @updatedAt @db.Timestamptz(6)
-  products      products[]
-  stores        stores     @relation(fields: [store_id], references: [id], onDelete: Cascade, map: "store_id")
+  id            String    @id @db.VarChar(255)
+  name          String    @db.VarChar(255)
+  description   String?   @db.VarChar(255)
+  store_id      String    @db.Uuid
+  contact_phone String    @default("NO_CONTACT_PHONE") @db.VarChar(255)
+  contact_email String    @default("NO_CONTACT_EMAIL") @db.VarChar(255)
+  is_active     Boolean   @default(true)
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime? @updatedAt @db.Timestamptz(6)
+  deleted_at    DateTime? @db.Timestamptz(6)
+
+  /// --- Relations ---
+  stores     stores       @relation(fields: [store_id], references: [id], onDelete: Cascade, map: "store_id")
+  products   products[]
+  receptions receptions[]
+
+  @@index([store_id])
 }
+
+
+/// * ========================================
+/// * TRANSACTIONAL MODELS (Inventory, Sales)
+/// * ========================================
+model inventory {
+  id         String   @id @default(uuid()) @db.Uuid
+  product_id String   @db.VarChar(255)
+  store_id   String   @db.Uuid
+  quantity   Int      @default(0)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
+
+  /// --- Relations ---
+  product products @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  store   stores   @relation(fields: [store_id], references: [id], onDelete: Cascade)
+
+  @@unique([product_id, store_id], name: "product_store_inventory_unique")
+  @@index([product_id])
+  @@index([store_id])
+  @@map("inventory")
+}
+
+// --- Inventory Receptions (Adding stock) ---
+model receptions {
+  id             String          @id @default(uuid()) @db.Uuid
+  store_id       String          @db.Uuid
+  user_id        String          @db.VarChar(255)
+  provider_id    String?         @db.VarChar(255)
+  reception_date DateTime        @default(now()) @db.Timestamptz(6)
+  status         ReceptionStatus @default(COMPLETED)
+  notes          String?
+  created_at     DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime        @updatedAt @db.Timestamptz(6)
+
+  /// --- Relations (onDelete: Restrict prevents deleting a store/user with history) ---
+  store    stores          @relation(fields: [store_id], references: [id], onDelete: Restrict)
+  user     users           @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  provider providers?      @relation(fields: [provider_id], references: [id], onDelete: SetNull)
+  items    reception_items[]
+
+  @@index([store_id])
+  @@index([user_id])
+  @@index([provider_id])
+  @@map("receptions")
+}
+
+model reception_items {
+  id           String  @id @default(uuid()) @db.Uuid
+  reception_id String  @db.Uuid
+  product_id   String  @db.VarChar(255)
+  quantity     Int
+  cost_price   Decimal @db.Decimal(10, 2) /// Cost at the time of reception
+
+  /// --- Relations ---
+  reception receptions @relation(fields: [reception_id], references: [id], onDelete: Cascade)
+  product   products   @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@index([reception_id])
+  @@index([product_id])
+  @@map("reception_items")
+}
+
+// --- Inventory Adjustments (Removing stock manually) ---
+model inventory_adjustments {
+  id              String           @id @default(uuid()) @db.Uuid
+  store_id        String           @db.Uuid
+  user_id         String           @db.VarChar(255)
+  adjustment_date DateTime         @default(now()) @db.Timestamptz(6)
+  reason          AdjustmentReason
+  notes           String?
+  created_at      DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime         @updatedAt @db.Timestamptz(6)
+
+
+  /// --- Relations (onDelete: Restrict prevents deleting a store/user with history) ---
+  store stores             @relation(fields: [store_id], references: [id], onDelete: Restrict)
+  user  users              @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  items adjustment_items[]
+
+  @@index([store_id])
+  @@index([user_id])
+  @@index([reason])
+  @@map("inventory_adjustments")
+}
+
+model adjustment_items {
+  id            String @id @default(uuid()) @db.Uuid
+  adjustment_id String @db.Uuid
+  product_id    String @db.VarChar(255)
+  quantity      Int /// Amount to subtract (always a positive integer)
+
+  /// --- Relations ---
+  adjustment inventory_adjustments @relation(fields: [adjustment_id], references: [id], onDelete: Cascade)
+  product    products              @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@index([adjustment_id])
+  @@index([product_id])
+  @@map("adjustment_items")
+}
+
+// --- Point of Sale (POS) transactions ---
+model sales {
+  id             String        @id @default(uuid()) @db.Uuid
+  store_id       String        @db.Uuid
+  user_id        String        @db.VarChar(255)
+  sale_date      DateTime      @default(now()) @db.Timestamptz(6)
+  total_amount   Decimal       @db.Decimal(10, 2)
+  tax_amount     Decimal       @default(0) @db.Decimal(10, 2)
+  currency       String        @default("USD") @db.VarChar(3)
+  payment_method PaymentMethod
+  status         SaleStatus    @default(COMPLETED)
+  created_at     DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime      @updatedAt @db.Timestamptz(6)
+
+  /// --- Relations (onDelete: Restrict prevents deleting a store/user with history) ---
+  store      stores       @relation(fields: [store_id], references: [id], onDelete: Restrict)
+  user       users        @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  sale_items sale_items[]
+
+  @@index([store_id])
+  @@index([user_id])
+  @@index([sale_date])
+  @@index([status])
+  @@map("sales")
+}
+
+model sale_items {
+  id                String  @id @default(uuid()) @db.Uuid
+  sale_id           String  @db.Uuid
+  product_id        String  @db.VarChar(255)
+  quantity          Int
+  price_at_sale     Decimal @db.Decimal(10, 2) /// Unit price at the moment of the transaction
+  total_item_amount Decimal @db.Decimal(10, 2) /// Calculated as (quantity * price_at_sale)
+
+  /// --- Relations ---
+  sale    sales    @relation(fields: [sale_id], references: [id], onDelete: Cascade)
+  product products @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@index([sale_id])
+  @@index([product_id])
+  @@map("sale_items")
+}
+
+/// * ========================================
+/// * ENUMS
+/// * ========================================
 
 enum InvitationStatus {
   PENDING
   ACCEPTED
   DECLINED
   EXPIRED
+}
+
+enum ReceptionStatus {
+  COMPLETED
+  CANCELLED
+}
+
+enum AdjustmentReason {
+  DAMAGED
+  LOST
+  EXPIRED
+  INTERNAL_USE
+  RETURN_TO_SUPPLIER
+  OTHER
+}
+
+enum SaleStatus {
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  TRANSFER
+  OTHER
 }
