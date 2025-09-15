@@ -34,7 +34,7 @@ export class ReceptionsController {
             });
         },
     }))
-    async create(@Body() reception: CreateReceptionDto): Promise<Result<Reception, Error>> {
+    async create(@Body() reception: CreateReceptionDto): Promise<Result<ReceptionsWithItems, Error>> {
         const result = await this.createReceptionUseCase.execute(reception)
         if (!result.isSuccess) {
             throw new BadRequestException(result.error.message)
@@ -45,8 +45,10 @@ export class ReceptionsController {
 
     @Get('get/all')
     @Permissions('product:read')
-    async getAll(@Query('store_id') store_id: string): Promise<Result<ReceptionsWithItems[], Error>> {
-        const result = await this.getAllReceptionsUseCase.execute(store_id)
+    async getAll(@Query('store_id') store_id: string, @Query('skip') skip: string = '0', @Query('take') take: string = '10'): Promise<Result<ReceptionsWithItems[], Error>> {
+        const skipNumber = Number(skip)
+        const takeNumber = Number(take)
+        const result = await this.getAllReceptionsUseCase.execute(store_id, skipNumber, takeNumber)
         if (!result.isSuccess) {
             throw new BadRequestException(result.error.message)
         }

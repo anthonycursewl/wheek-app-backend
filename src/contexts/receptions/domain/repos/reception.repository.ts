@@ -1,4 +1,3 @@
-
 export enum ReceptionStatus {
     COMPLETED,
     CANCELLED
@@ -23,6 +22,8 @@ export interface ReceptionsWithItems {
     id: string;
     notes: string | null;
     items: {
+        quantity: number;
+        cost_price: number;
         product: {
             name: string;
         };
@@ -38,8 +39,8 @@ export interface ReceptionsWithItems {
 }
 
 export interface ReceptionRepository {
-    create(reception: Omit<Reception, 'id'>): Promise<Reception>;
-    getAll(store_id: string): Promise<ReceptionsWithItems[]>;
+    create(reception: Omit<Reception, 'id'>): Promise<ReceptionsWithItems>;
+    getAll(store_id: string, skip: number, take: number): Promise<ReceptionsWithItems[]>;
 }
 
 export const RECEPTION_REPOSITORY = Symbol('ReceptionRepository');

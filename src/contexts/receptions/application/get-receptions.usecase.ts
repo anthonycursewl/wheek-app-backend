@@ -10,10 +10,10 @@ export class GetAllReceptionsUseCase {
         private readonly receptionRepository: ReceptionRepository
     ) {}
 
-    async execute(store_id: string): Promise<Result<ReceptionsWithItems[], Error>> {
+    async execute(store_id: string, skip: number = 0, take: number = 10): Promise<Result<ReceptionsWithItems[], Error>> {
         try {
             if (!store_id) throw new Error('Store ID is required')
-            const receptions = await this.receptionRepository.getAll(store_id)
+            const receptions = await this.receptionRepository.getAll(store_id, skip, take)
             return success(receptions)
         } catch (error) {
             return failure(error)

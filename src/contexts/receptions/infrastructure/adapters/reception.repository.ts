@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { ReceptionRepository } from "../../domain/repos/reception.repository";
-import { Reception, ReceptionStatus } from "../../domain/repos/reception.repository";
+import { ReceptionsWithItems, Reception } from "../../domain/repos/reception.repository";
 import { PrismaService } from "@/src/contexts/shared/persistance/prisma.service";
 
 @Injectable()
@@ -9,7 +9,7 @@ export class ReceptionRepositoryAdapter implements ReceptionRepository {
         private readonly prisma: PrismaService
     ) {}
 
-    async create(reception: Omit<Reception, 'id'>): Promise<Reception> {
+    async create(reception: Omit<Reception, 'id'>): Promise<ReceptionsWithItems> {
         const newReceptionWithItems = await this.prisma.$transaction(async (tx) => {
             const createdReception = await tx.receptions.create({
                 data: {
@@ -51,28 +51,62 @@ export class ReceptionRepositoryAdapter implements ReceptionRepository {
                 });
             }));
 
-            return createdReception;
+            const completeReception = await this.prisma.receptions.findUnique({
+                where: {
+                    id: createdReception.id
+                },
+                select: {   
+                    id: true,
+                    notes: true,
+                    items: {
+                        select: {
+                            quantity: true,
+                            cost_price: true,
+                            product: {
+                                select: {
+                                    name: true
+                                }
+                            }
+                        }
+                    },
+                    reception_date: true,
+                    status: true,
+                    user: {
+                        select: {
+                            name: true
+                        }
+                    },
+                    provider: {
+                        select: {
+                            name: true
+                        }
+                    }
+                }
+            });
+
+            return completeReception;
         });
 
+        if (!newReceptionWithItems) {
+            throw new Error('An error occurred while creating the reception. Try again.');
+        }
+        
         return {
-            id: newReceptionWithItems.id,
-            store_id: newReceptionWithItems.store_id,
-            user_id: newReceptionWithItems.user_id,
-            provider_id: newReceptionWithItems.provider_id,
-            notes: newReceptionWithItems.notes,
+            ...newReceptionWithItems,
             items: newReceptionWithItems.items.map(item => ({
-                product_id: item.product_id,
-                quantity: item.quantity,
-                cost_price: parseFloat(item.cost_price.toString())
+                ...item,
+                cost_price: Number(item.cost_price)
             }))
         };
     }
 
-    async getAll(store_id: string) {
+    async getAll(store_id: string, skip: number, take: number): Promise<ReceptionsWithItems[]> {
         const receptions = await this.prisma.receptions.findMany({
             where: {
                 store_id
             },
+            skip,
+            take,
             select: {
                 id: true,
                 notes: true,
@@ -90,6 +124,8 @@ export class ReceptionRepositoryAdapter implements ReceptionRepository {
                 },
                 items: {
                     select: {
+                        quantity: true,
+                        cost_price: true,
                         product: {
                             select: {
                                 name: true
@@ -100,6 +136,12 @@ export class ReceptionRepositoryAdapter implements ReceptionRepository {
             }
         })
 
-        return receptions
+        return receptions.map(reception => ({
+            ...reception,
+            items: reception.items.map(item => ({
+                ...item,
+                cost_price: Number(item.cost_price)
+            }))
+        }));
     }
 }

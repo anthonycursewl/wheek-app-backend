@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { Result, success, failure } from "@/src/contexts/shared/ROP/result";
 import { RECEPTION_REPOSITORY, ReceptionRepository } from "../domain/repos/reception.repository";
-import { Reception } from "../domain/repos/reception.repository";
+import { Reception, ReceptionsWithItems } from "../domain/repos/reception.repository";
 
 @Injectable()
 export class CreateReceptionUseCase {
@@ -10,7 +10,7 @@ export class CreateReceptionUseCase {
         private readonly receptionRepository: ReceptionRepository
     ) {}
 
-    async execute(reception: Omit<Reception, 'id'>): Promise<Result<Reception, Error>> {
+    async execute(reception: Omit<Reception, 'id'>): Promise<Result<ReceptionsWithItems, Error>> {
         try {
             if (reception.items.length === 0) {
                 throw new Error('No se proporcionaron items para la recepción')
