@@ -23,7 +23,7 @@ export interface InventoryWithDetails {
 }
 
 export interface InventoryRepository {
-    getAll(store_id: string): Promise<InventoryWithDetails[]>
+    getAll(store_id: string, skip: number, take: number): Promise<InventoryWithDetails[]>
 }
 
 export const INVENTORY_REPOSITORY = Symbol('InventoryRepository')

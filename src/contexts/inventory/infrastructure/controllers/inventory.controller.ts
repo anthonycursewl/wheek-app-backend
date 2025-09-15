@@ -12,8 +12,10 @@ export class InventoryController {
 
     @Get('get/all')
     @Permissions('product:read')
-    async getAll(@Query('store_id') store_id: string): Promise<Result<InventoryWithDetails[], Error>> {
-        const result = await this.getAllInventoryUseCase.execute(store_id)
+    async getAll(@Query('store_id') store_id: string, @Query('skip') skip: string = '0', @Query('take') take: string = '10'): Promise<Result<InventoryWithDetails[], Error>> {
+        const skipNumber = Number(skip) || 0    
+        const takeNumber = Number(take) || 10
+        const result = await this.getAllInventoryUseCase.execute(store_id, skipNumber, takeNumber)
         if (!result.isSuccess) {
             throw new BadRequestException(result.error.message)
         }

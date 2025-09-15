@@ -12,10 +12,10 @@ export class GetAllInventoryUseCase {
         private readonly inventoryRepository: InventoryRepository
     ) {}
 
-    async execute(store_id: string): Promise<Result<InventoryWithDetails[], Error>> {
+    async execute(store_id: string, skip: number, take: number): Promise<Result<InventoryWithDetails[], Error>> {
         try {
             if (!store_id) throw new Error('Store ID is required')
-            const inventory = await this.inventoryRepository.getAll(store_id)
+            const inventory = await this.inventoryRepository.getAll(store_id, skip, take)
             return success(inventory)
         } catch (error) {
             return failure(error)

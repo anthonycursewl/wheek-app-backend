@@ -8,11 +8,13 @@ export class InventoryRepositoryAdapter implements InventoryRepository {
         private readonly prismaService: PrismaService
     ) {}
 
-    async getAll(store_id: string): Promise<InventoryWithDetails[]> {
+    async getAll(store_id: string, skip: number = 0, take: number = 10): Promise<InventoryWithDetails[]> {
         const inventory = await this.prismaService.inventory.findMany({
             where: {
                 store_id
             },
+            skip,
+            take,
             select: {
                 id: true,
                 store: {
