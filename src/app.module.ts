@@ -5,6 +5,8 @@ import { StoresModule } from './contexts/stores/stores.module';
 import { ProductsModule } from './contexts/products/products.module';
 import { RbacModule } from './common/rbac/rbac.module';
 import { PrismaModule } from '@shared/persistance';
+import { ReceptionsModule } from './contexts/receptions/receptions.module';
+import { InventoryModule } from './contexts/inventory/inventory.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { PrismaModule } from '@shared/persistance';
     UserModule, 
     StoresModule, 
     ProductsModule,
+    ReceptionsModule,
+    InventoryModule
   ],
   controllers: [],
   providers: [],
