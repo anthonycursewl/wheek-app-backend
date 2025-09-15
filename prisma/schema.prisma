@@ -283,7 +283,7 @@ model reception_items {
   reception_id String  @db.Uuid
   product_id   String  @db.VarChar(255)
   quantity     Int
-  cost_price   Decimal @db.Decimal(10, 2) /// Cost at the time of reception
+  cost_price   Decimal @db.Decimal(10, 2)
 
   /// --- Relations ---
   reception receptions @relation(fields: [reception_id], references: [id], onDelete: Cascade)
