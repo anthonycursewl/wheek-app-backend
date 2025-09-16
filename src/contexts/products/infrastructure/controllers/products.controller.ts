@@ -9,6 +9,7 @@ import { DeleteProductUseCase } from '../../application/products/delete-product.
 import { Permissions } from '@/src/common/decorators/permissions.decorator';
 import { ProductPrimitive } from '../../domain/entities/product.entity';
 import { SearchProductUseCase } from '../../application/products/search-product.usecase';
+import { ProductFilterDto } from '../dtos/products/get-products.dto';
 
 @Controller('products')
 export class ProductController {
@@ -75,7 +76,7 @@ export class ProductController {
     @Permissions('product:read')
     async getAll(
         @Query() query: { store_id: string; skip: string; take: string },
-        @CurrentUser() user: JwtPayload
+        @Query() filter: ProductFilterDto,
     ) {
 
         if (!query.skip || !query.take) query.skip = '0'; query.take = '10'
@@ -83,7 +84,7 @@ export class ProductController {
         const skip = parseInt(query.skip);
         const take = parseInt(query.take);
 
-        const result = await this.getAllProductsUseCase.execute(query.store_id, skip, take);
+        const result = await this.getAllProductsUseCase.execute(query.store_id, skip, take, filter);
 
         if (!result.isSuccess) {
             throw new BadRequestException(result.error?.message || 'Error al obtener los productos');

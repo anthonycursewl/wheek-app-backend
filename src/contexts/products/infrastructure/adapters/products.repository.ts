@@ -3,6 +3,7 @@ import { ProductRepository } from "../../domain/repos/product.repository";
 import { PrismaService } from "@/src/contexts/shared/persistance/prisma.service";
 import { Product, ProductPrimitive, ProductSearchResult } from "../../domain/entities/product.entity";
 import { Prisma } from "@prisma/client";
+import { Criteria } from "../../application/products/get-all-products.usecase";
 
 type ProductWithFicha = Prisma.productsGetPayload<{
     include: { w_ficha: true };
@@ -51,10 +52,15 @@ export class ProductRepositoryAdapter implements ProductRepository {
         });
     }
 
-    async getAll(store_id: string, skip: number, take: number): Promise<Product[] | []> {
+    async getAll(store_id: string, skip: number, take: number, criteria: Criteria): Promise<Product[] | []> {
+        const condition = criteria.where.condition === 'both' ? ['KG', 'UND'] : [criteria.where.condition];
         const products = await this.prisma.products.findMany({
             where: {
-                store_id
+                store_id,
+                is_active: criteria.where.is_active,
+                created_at: criteria.where.created_at,
+                
+                w_ficha: { condition: { in: condition } }
             },
             skip,
             take,
@@ -62,7 +68,7 @@ export class ProductRepositoryAdapter implements ProductRepository {
                 w_ficha: true
             },
             orderBy: {
-                created_at: 'desc'
+                created_at: criteria.orderBy
             }
         }) as ProductWithFicha[];
 
