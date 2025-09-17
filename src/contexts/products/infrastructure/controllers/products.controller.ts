@@ -1,4 +1,4 @@
-import { Controller, Post, Body, BadRequestException, Get, Query, Delete } from '@nestjs/common';
+import { Controller, Post, Body, BadRequestException, Get, Query, Delete, Param } from '@nestjs/common';
 import { CurrentUser } from '@/src/common/decorators/current-user.decorator';
 import { JwtPayload } from '@/src/common/interfaces/jwt-payload.interface';
 import { CreateProductUseCase } from '../../application/products/create-product.usecase';
@@ -131,18 +131,13 @@ export class ProductController {
         return result;
     }
 
-    @Delete('delete')
+    @Delete('delete/:product_id')
     @Permissions('product:delete')
     async delete(
-        @Body() deleteProductDto: DeleteProductDto,
-        @CurrentUser() user: JwtPayload
+        @Param('product_id') product_id: string,
     ) {
-        const result = await this.deleteProductUseCase.execute(deleteProductDto.id, user.sub);
-
-        if (!result.isSuccess) {
-            throw new BadRequestException(result.error?.message || 'Error al eliminar el producto');
-        }
- 
+        const result = await this.deleteProductUseCase.execute(product_id);
+        if (!result.isSuccess) throw new BadRequestException(result.error?.message || 'Error al eliminar el producto.');
         return result;
     }
 
@@ -154,9 +149,7 @@ export class ProductController {
         if (!query.store_id || !query.q) throw new BadRequestException('El store_id y query "q" son requeridos')
         
         const result = await this.searchProductUseCase.execute(query.store_id, query.q);
-        if (!result.isSuccess) {
-            throw new BadRequestException(result.error?.message || 'Error al buscar el producto');
-        }
+        if (!result.isSuccess) throw new BadRequestException(result.error?.message || 'Error al buscar el producto');
         return result;
     }
 }

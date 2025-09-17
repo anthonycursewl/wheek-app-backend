@@ -165,18 +165,33 @@ export class ProductRepositoryAdapter implements ProductRepository {
     }
 
     async delete(id: string): Promise<Product | null> {
-        const product = await this.findById(id);
+        const product = await this.prisma.products.findUnique({ where: { id }, select: { is_active: true } })
         if (!product) return null;
 
-        await this.prisma.products.update({
+        const deleted = await this.prisma.products.update({
             where: { id },
+            include: { w_ficha: true },
             data: {
-                is_active: false,
+                is_active: !product.is_active,
                 deleted_at: new Date()
             }
         });
 
-        return product;
+        return Product.fromPrimitive({
+            ...deleted,
+            w_ficha: deleted.w_ficha ? {
+                ...deleted.w_ficha,
+                cost: Number(deleted.w_ficha.cost),
+                benchmark: Number(deleted.w_ficha.benchmark),
+            } : {
+                id: '',
+                condition: '',
+                cost: 0,
+                benchmark: 0,
+                tax: false,
+                product_id: ''
+            }
+        });
     }
 
     async search(store_id: string, q: string): Promise<ProductSearchResult[] | []> {

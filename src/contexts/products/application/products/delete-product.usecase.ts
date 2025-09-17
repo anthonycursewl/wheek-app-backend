@@ -11,11 +11,9 @@ export class DeleteProductUseCase {
         private readonly productRepository: ProductRepository
     ) {}
 
-    async execute(id: string, user_id: string): Promise<Result<Product, Error>> {
+    async execute(id: string): Promise<Result<Product, Error>> {
         try {
-            if (!id) {
-                return failure(new Error('Product ID is required'));
-            }
+            if (!id) throw new Error('Product ID is required')
 
             const product = await this.productRepository.findById(id);
             if (!product) {
