@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { ProviderRepository } from "../../domain/repos/provider.repository";
+import { ProviderRepository, ProviderCriteria } from "../../domain/repos/provider.repository";
 import { Provider } from "../../domain/entities/provider.entity";
 import { PrismaService } from "@/src/contexts/shared/persistance/prisma.service";
 
@@ -45,15 +45,13 @@ export class ProviderRepositoryAdapter implements ProviderRepository {
         return Provider.fromPrimitives(createdProvider)
     }
 
-    async findAll(store_id: string, skip: number, take: number): Promise<Provider[]> {
+    async findAll(store_id: string, skip: number, take: number, criteria: ProviderCriteria): Promise<Provider[]> {
         const providers = await this.prisma.providers.findMany({
             where: {
+                ...criteria.where,
                 store_id: store_id,
-                is_active: true
             },
-            orderBy: {
-                created_at: 'desc'
-            },
+            orderBy: criteria.orderBy,
             skip,
             take,
         })

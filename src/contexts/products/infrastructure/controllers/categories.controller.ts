@@ -1,4 +1,4 @@
-import { Post, Body, UsePipes, ValidationPipe, Controller, Get, Query, Param, Put } from "@nestjs/common";
+import { Post, Body, UsePipes, ValidationPipe, Controller, Get, Query, Param, Put, BadRequestException } from "@nestjs/common";
 import { CreateCategoryUseCase } from "../../application/categories/create-category.usecase";
 import { CreateCategoryDto } from "../dtos/categories/create-category.dto";
 import { GetAllCategoriesUseCase } from "../../application/categories/get-all-categories.usecase";
@@ -6,6 +6,7 @@ import { Permissions } from "@/src/common/decorators/permissions.decorator";
 import { CategoryPrimitives } from "../../domain/entities/categories.entity";
 import { UpdateCategoryUseCase } from "../../application/categories/update-category.usecase";
 import { failure } from "@/src/contexts/shared/ROP/result";
+import { FilterCategoryDto } from "../dtos/categories/filter-category.dto";
 
 @Controller('categories')
 export class CategoryController {
@@ -24,9 +25,18 @@ export class CategoryController {
 
     @Get('all/:store_id')
     @Permissions('category:read')
-    async getAllCategoriesByStoreId(@Query() query: { skip: string, take: string }, @Param('store_id') store_id: string) {
+    async getAllCategoriesByStoreId(
+        @Query() query: { skip: string, take: string }, 
+        @Param('store_id') store_id: string,
+        @Query() filter: FilterCategoryDto
+    ) {
+        console.log(filter)
         if (!query.skip || !query.take) query.skip = '0'; query.take = '10'
-        return await this.getAllCategoriesUseCase.execute(store_id, Number(query.skip), Number(query.take));
+        const result = await this.getAllCategoriesUseCase.execute(store_id, Number(query.skip), Number(query.take), filter);
+        console.log(result)
+
+        if (!result.isSuccess) throw new BadRequestException(result.error?.message || 'Error al obtener las categorías');
+        return result;
     }
 
     @Put('update/:id')

@@ -1,21 +1,5 @@
-import { IsBoolean, IsOptional, IsString, IsUUID } from 'class-validator';
-import { Transform } from 'class-transformer';
-
-export class GetProductsDto {
-    @IsUUID(4, { message: 'El id debe ser un UUID válido' })
-    store_id: string;
-
-    skip: string;
-    take: string;
-}
-
-export class ProductResponseDto {
-    id: string;
-    barcode: string;
-    name: string;
-    store_id: string;
-    created_at: Date;
-}
+import { Transform } from "class-transformer";
+import { IsBoolean, IsOptional } from "class-validator";
 
 const TransformToBoolean = () => {
   return Transform(({ value }) => {
@@ -25,7 +9,7 @@ const TransformToBoolean = () => {
   });
 };
 
-export class ProductFilterDto {
+export class FilterAllProviderDto {
   @IsOptional()
   @IsBoolean()
   @TransformToBoolean()
@@ -54,14 +38,10 @@ export class ProductFilterDto {
   @IsOptional()
   @IsBoolean()
   @TransformToBoolean()
-  KG?: boolean;
+  nameAsc?: boolean;
 
   @IsOptional()
   @IsBoolean()
   @TransformToBoolean()
-  UND?: boolean;
-
-  @IsOptional()
-  @IsUUID('all', { message: 'El id debe ser un UUID válido.' })
-  provider?: string;
+  nameDesc?: boolean;
 }
