@@ -38,6 +38,7 @@ export class ReceptionRepositoryAdapter implements ReceptionRepository {
                     select: {   
                         id: true,
                         notes: true,
+                        is_active: true,
                         items: {
                             select: {
                                 quantity: true,
@@ -91,6 +92,7 @@ export class ReceptionRepositoryAdapter implements ReceptionRepository {
             return {
                 id: newReceptionWithItems.id,
                 notes: newReceptionWithItems.notes,
+                is_active: newReceptionWithItems.is_active,
                 items: newReceptionWithItems.items.map(item => ({
                     quantity: item.quantity,
                     cost_price: Number(item.cost_price),
@@ -114,19 +116,19 @@ export class ReceptionRepositoryAdapter implements ReceptionRepository {
         }
     }
 
-    async getAll(store_id: string, skip: number, take: number): Promise<ReceptionsWithItems[]> {
+    async getAll(store_id: string, skip: number, take: number, criteria: any): Promise<ReceptionsWithItems[]> {
         const receptions = await this.prisma.receptions.findMany({
             where: {
-                store_id
+                store_id,
+                ...criteria.where
             },
             skip,
             take,
-            orderBy: {
-                created_at: 'desc'
-            },
+            orderBy: criteria.orderBy,
             select: {
                 id: true,
                 notes: true,
+                is_active: true,
                 reception_date: true,
                 status: true,
                 provider: {
@@ -160,5 +162,175 @@ export class ReceptionRepositoryAdapter implements ReceptionRepository {
                 cost_price: Number(item.cost_price)
             }))
         }));
+    }
+
+    /**
+     * Elimina una recepción de la base de datos (borrado suave o permanente)
+     * y actualiza el inventario correspondiente restando las cantidades.
+     * Todas las operaciones de base de datos se ejecutan dentro de una transacción.
+     * 
+     * @param id - El ID de la recepción a eliminar
+     * @param isSoftDelete - Si es true, realiza un borrado suave (marcar como cancelada), si es false, elimina permanentemente
+     * @returns Una Promesa que se resuelve con el objeto de la recepción eliminada
+     * @throws Lanza un error si la eliminación de la recepción o la actualización del inventario fallan
+     */
+    async delete(id: string, isSoftDelete: boolean): Promise<ReceptionsWithItems> {
+        try {
+            return await this.prisma.$transaction(async (tx) => {
+                let result;
+
+                if (isSoftDelete) {
+                    const reception = await tx.receptions.findUnique({
+                        where: { id },
+                        include: {
+                            items: true
+                        }
+                    });
+    
+                    if (!reception) {
+                        throw new Error(`Recepción con ID ${id} no encontrada`);
+                    }
+    
+                    await Promise.all(reception.items.map(item => {
+                        return tx.inventory.update({
+                            where: {
+                                product_store_inventory_unique: {
+                                    product_id: item.product_id,
+                                    store_id: reception.store_id,
+                                }
+                            },
+                            data: {
+                                quantity: {
+                                    decrement: item.quantity
+                                }
+                            }
+                        });
+                    }));
+
+                    const rawResult = await tx.receptions.update({
+                        where: { id },
+                        data: {
+                            status: 'CANCELLED',
+                            is_active: false
+                        },
+                        select: {
+                            id: true,
+                            notes: true,
+                            is_active: true,
+                            items: {
+                                select: {
+                                    quantity: true,
+                                    cost_price: true,
+                                    product: {
+                                        select: {
+                                            name: true
+                                        }
+                                    }
+                                }
+                            },
+                            reception_date: true,
+                            status: true,
+                            user: {
+                                select: {
+                                    name: true
+                                }
+                            },
+                            provider: {
+                                select: {
+                                    name: true
+                                }
+                            }
+                        }
+                    });
+                    
+                    result = {
+                        id: rawResult.id,
+                        notes: rawResult.notes,
+                        is_active: rawResult.is_active,
+                        items: rawResult.items.map(item => ({
+                            quantity: item.quantity,
+                            cost_price: Number(item.cost_price),
+                            product: {
+                                name: item.product.name
+                            }
+                        })),
+                        reception_date: rawResult.reception_date,
+                        status: rawResult.status,
+                        user: {
+                            name: rawResult.user.name
+                        },
+                        provider: rawResult.provider ? {
+                            name: rawResult.provider.name
+                        } : null
+                    };
+                } else {
+                    const receptionToDelete = await tx.receptions.findUnique({
+                        where: { id },
+                        select: {
+                            id: true,
+                            notes: true,
+                            is_active: true,
+                            items: {
+                                select: {
+                                    quantity: true,
+                                    cost_price: true,
+                                    product: {
+                                        select: {
+                                            name: true
+                                        }
+                                    }
+                                }
+                            },
+                            reception_date: true,
+                            status: true,
+                            user: {
+                                select: {
+                                    name: true
+                                }
+                            },
+                            provider: {
+                                select: {
+                                    name: true
+                                }
+                            }
+                        }
+                    });
+
+                    if (!receptionToDelete) {
+                        throw new Error(`Recepción con ID ${id} no encontrada para eliminación`);
+                    }
+
+                    await tx.receptions.delete({
+                        where: { id }
+                    });
+                    
+                    result = {
+                        id: receptionToDelete.id,
+                        notes: receptionToDelete.notes,
+                        is_active: receptionToDelete.is_active,
+                        items: receptionToDelete.items.map(item => ({
+                            quantity: item.quantity,
+                            cost_price: Number(item.cost_price),
+                            product: {
+                                name: item.product.name
+                            }
+                        })),
+                        reception_date: receptionToDelete.reception_date,
+                        status: receptionToDelete.status,
+                        user: {
+                            name: receptionToDelete.user.name
+                        },
+                        provider: receptionToDelete.provider ? {
+                            name: receptionToDelete.provider.name
+                        } : null
+                    };
+                }
+
+                return result;
+            });
+        } catch (error) {
+            console.error("Error en la transacción de eliminación de recepción:", error);
+            throw new Error(`Error al eliminar la recepción: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+        }
     }
 }

@@ -21,6 +21,7 @@ export interface Reception {
 export interface ReceptionsWithItems {
     id: string;
     notes: string | null;
+    is_active: boolean;
     items: {
         quantity: number;
         cost_price: number;
@@ -40,7 +41,8 @@ export interface ReceptionsWithItems {
 
 export interface ReceptionRepository {
     create(reception: Omit<Reception, 'id'>): Promise<ReceptionsWithItems>;
-    getAll(store_id: string, skip: number, take: number): Promise<ReceptionsWithItems[]>;
+    delete(id: string, isSoftDelete: boolean): Promise<ReceptionsWithItems>;
+    getAll(store_id: string, skip: number, take: number, filters: any): Promise<ReceptionsWithItems[]>;
 }
 
 export const RECEPTION_REPOSITORY = Symbol('ReceptionRepository');
