@@ -1,8 +1,14 @@
 import { Provider } from "../entities/provider.entity"
+import { Prisma } from "@prisma/client"
+
+export type ProviderCriteria = {
+    where: Prisma.providersWhereInput;
+    orderBy: Prisma.providersOrderByWithRelationInput[];
+};
 
 export interface ProviderRepository {
     save(provider: Provider): Promise<Provider>
-    findAll(store_id: string, skip: number, take: number): Promise<Provider[]>
+    findAll(store_id: string, skip: number, take: number, criteria: ProviderCriteria): Promise<Provider[]>
     delete(id: string): Promise<Provider | null>
 }
 

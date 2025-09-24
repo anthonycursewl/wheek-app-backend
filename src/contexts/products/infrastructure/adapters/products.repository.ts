@@ -59,7 +59,7 @@ export class ProductRepositoryAdapter implements ProductRepository {
                 store_id,
                 is_active: criteria.where.is_active,
                 created_at: criteria.where.created_at,
-                
+                provider_id: criteria.where.provider_id,
                 w_ficha: { condition: { in: condition } }
             },
             skip,

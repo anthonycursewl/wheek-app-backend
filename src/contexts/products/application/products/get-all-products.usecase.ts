@@ -60,6 +60,8 @@ export class GetAllProductsUseCase {
           criteria.condition = 'KG'
         } else if (filters.UND) {
           criteria.condition = 'UND'
+        } else if (filters.provider) {
+            criteria.provider_id = filters.provider
         }
         
         criteria.is_active = filters.deleted ? false : true;

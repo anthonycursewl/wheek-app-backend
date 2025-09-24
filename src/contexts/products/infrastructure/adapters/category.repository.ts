@@ -24,17 +24,16 @@ export class CategoryRepositoryAdapter implements CategoryRepository {
         return Category.fromPrimitives(createdCategory);
     }
 
-    async findAllByStoreId(storeId: string, skip: number, take: number): Promise<Category[]> {
+    async findAllByStoreId(storeId: string, skip: number, take: number, criteria: any): Promise<Category[]> {
         const categories = await this.prisma.categories.findMany({
             where: {
                 store_id: storeId,
-                is_active: true
+                is_active: criteria.where.is_active,
+                created_at: criteria.where.created_at,
             },
             skip,
             take,
-            orderBy: {
-                created_at: 'desc'
-            }
+            orderBy: criteria.orderBy
         });
 
         return categories.map(category => Category.fromPrimitives(category));
