@@ -155,7 +155,6 @@ model invitations {
 /// * ========================================
 /// * BUSINESS LOGIC MODELS (Products, etc.)
 /// * ========================================
-
 model products {
   id          String    @id @db.VarChar(255)
   barcode     String    @db.VarChar(255)
@@ -189,7 +188,7 @@ model w_fichas {
   id         String  @id @db.Uuid
   condition  String  @db.VarChar(255)
   cost       Decimal @db.Decimal(10, 2)
-  benchmark  Decimal @db.Decimal(10, 2) /// Expected performance or quality metric
+  benchmark  Decimal @db.Decimal(10, 2)
   tax        Boolean
   product_id String  @unique @db.VarChar(255)
 
@@ -233,7 +232,6 @@ model providers {
   @@index([store_id])
 }
 
-
 /// * ========================================
 /// * TRANSACTIONAL MODELS (Inventory, Sales)
 /// * ========================================
@@ -262,9 +260,11 @@ model receptions {
   provider_id    String?         @db.VarChar(255)
   reception_date DateTime        @default(now()) @db.Timestamptz(6)
   status         ReceptionStatus @default(COMPLETED)
+  is_active      Boolean         @default(true)
   notes          String?
   created_at     DateTime        @default(now()) @db.Timestamptz(6)
   updated_at     DateTime        @updatedAt @db.Timestamptz(6)
+  deleted_at     DateTime?       @db.Timestamptz(6)
 
   /// --- Relations (onDelete: Restrict prevents deleting a store/user with history) ---
   store    stores          @relation(fields: [store_id], references: [id], onDelete: Restrict)
@@ -321,7 +321,7 @@ model adjustment_items {
   id            String @id @default(uuid()) @db.Uuid
   adjustment_id String @db.Uuid
   product_id    String @db.VarChar(255)
-  quantity      Int /// Amount to subtract (always a positive integer)
+  quantity      Int
 
   /// --- Relations ---
   adjustment inventory_adjustments @relation(fields: [adjustment_id], references: [id], onDelete: Cascade)
