@@ -7,6 +7,8 @@ import { RbacModule } from './common/rbac/rbac.module';
 import { PrismaModule } from '@shared/persistance';
 import { ReceptionsModule } from './contexts/receptions/receptions.module';
 import { InventoryModule } from './contexts/inventory/inventory.module';
+import { MemberModule } from './contexts/members/member.module';
+import { EmailModule } from './contexts/shared/infrastructure/email/email.module';
 
 @Module({
   imports: [
@@ -20,7 +22,9 @@ import { InventoryModule } from './contexts/inventory/inventory.module';
     StoresModule, 
     ProductsModule,
     ReceptionsModule,
-    InventoryModule
+    InventoryModule,
+    MemberModule,
+    EmailModule
   ],
   controllers: [],
   providers: [],
