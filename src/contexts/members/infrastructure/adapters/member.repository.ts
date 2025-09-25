@@ -170,20 +170,17 @@ export class MemberRepositoryAdapter implements MemberRepository {
                 include: {
                     role: {
                         select: {
-                            id: true,
                             name: true,
                             description: true
                         }
                     },
                     store: {
                         select: {
-                            id: true,
                             name: true
                         }
                     },
                     invited_by: {
                         select: {
-                            id: true,
                             name: true,
                             last_name: true,
                             email: true
@@ -246,20 +243,17 @@ export class MemberRepositoryAdapter implements MemberRepository {
                 include: {
                     role: {
                         select: {
-                            id: true,
                             name: true,
                             description: true
                         }
                     },
                     store: {
                         select: {
-                            id: true,
                             name: true
                         }
                     },
                     invited_by: {
                         select: {
-                            id: true,
                             name: true,
                             last_name: true,
                             email: true
@@ -286,20 +280,17 @@ export class MemberRepositoryAdapter implements MemberRepository {
                 include: {
                     role: {
                         select: {
-                            id: true,
                             name: true,
                             description: true
                         }
                     },
                     store: {
                         select: {
-                            id: true,
                             name: true
                         }
                     },
                     invited_by: {
                         select: {
-                            id: true,
                             name: true,
                             last_name: true,
                             email: true

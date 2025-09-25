@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query, Param, HttpCode, HttpStatus, ValidationPipe, Body } from '@nestjs/common';
+import { Controller, Get, Post, Query, Param, HttpCode, HttpStatus, ValidationPipe, Body, BadRequestException } from '@nestjs/common';
 import { GetAllMembersUseCase } from '../../application/get-all-members.usecase';
 import { InviteMemberUseCase } from '../../application/invite-member.usecase';
 import { GetAllMembersCriteria } from '../../domain/entities/member.types';
@@ -13,14 +13,14 @@ import { CurrentUser } from '@/src/common/decorators/current-user.decorator';
 import { JwtPayload } from '@/src/common/interfaces/jwt-payload.interface';
 
 @ApiTags('members')
-@Controller('members/:store_id/get/all')
+@Controller('members/:store_id')
 export class MemberController {
   constructor(
     private readonly getAllMembersUseCase: GetAllMembersUseCase,
     private readonly inviteMemberUseCase: InviteMemberUseCase
   ) {}
 
-  @Post()
+  @Post('create/invitation')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Invite a new member to a store' })
   @ApiResponse({ 
@@ -35,10 +35,12 @@ export class MemberController {
     @CurrentUser() user: JwtPayload
   ): Promise<Result<Invitation, Error>> {
     const invited_by_id = user.sub;
-    return this.inviteMemberUseCase.execute(store_id, invited_by_id, inviteDto);
+    const result = await this.inviteMemberUseCase.execute(store_id, invited_by_id, inviteDto);
+    if (!result.isSuccess) throw new BadRequestException(result.error.message);
+    return result;
   }
 
-  @Get()
+  @Get('get/all')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all members of a store with pagination and filtering' })
   @ApiResponse({ 
@@ -67,12 +69,14 @@ export class MemberController {
     const skip = filterDto.skip !== undefined ? Number(filterDto.skip) : 0;
     const take = filterDto.take !== undefined ? Number(filterDto.take) : 10;
     
-    return this.getAllMembersUseCase.execute(
+    const result = await this.getAllMembersUseCase.execute(
       store_id,
       skip,
       take,
       criteria
     );
+    if (!result.isSuccess) throw new BadRequestException(result.error.message);
+    return result;
   }
 
 
@@ -103,12 +107,14 @@ export class MemberController {
       include_permissions: includePerms,
     };
 
-    return this.getAllMembersUseCase.execute(
+    const result = await this.getAllMembersUseCase.execute(
       store_id,
       skipNum,
       takeNum,
       criteria
     );
+    if (!result.isSuccess) throw new BadRequestException(result.error.message);
+    return result;
   }
 
   @Get('search')
@@ -132,12 +138,14 @@ export class MemberController {
       search: searchTerm,
     };
 
-    return this.getAllMembersUseCase.execute(
+    const result = await this.getAllMembersUseCase.execute(
       store_id,
       0,
       limitNum,
       criteria
     );
+    if (!result.isSuccess) throw new BadRequestException(result.error.message);
+    return result;
   }
 
   @Get('roles/:role_id')
@@ -162,11 +170,13 @@ export class MemberController {
       include_permissions: includePerms,
     };
 
-    return this.getAllMembersUseCase.execute(
+    const result = await this.getAllMembersUseCase.execute(
       store_id,
       0,
       Number.MAX_SAFE_INTEGER,
       criteria
     );
+    if (!result.isSuccess) throw new BadRequestException(result.error.message);
+    return result;
   }
 }

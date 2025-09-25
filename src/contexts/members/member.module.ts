@@ -37,10 +37,6 @@ import { ROLE_REPOSITORY } from "../stores/domain/repos/role.repository";
             provide: ROLE_REPOSITORY,
             useClass: RoleRepositoryAdapter,
         },
-        {
-            provide: 'IEmailService',
-            useClass: EmailService,
-        },
         GetAllMembersUseCase,
         InviteMemberUseCase,
         AcceptInvitationUseCase,
