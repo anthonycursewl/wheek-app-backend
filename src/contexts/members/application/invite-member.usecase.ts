@@ -19,6 +19,7 @@ export class InviteMemberUseCase {
     constructor(
         @Inject(MEMBER_REPOSITORY)
         private readonly memberRepository: MemberRepository,
+        @Inject('IEmailService')
         private readonly emailService: IEmailService,
         @Inject(STORE_REPOSITORY)
         private readonly storeRepository: StoreRepository,

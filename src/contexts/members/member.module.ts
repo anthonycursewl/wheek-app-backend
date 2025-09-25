@@ -8,6 +8,7 @@ import { AcceptInvitationUseCase } from "./application/accept-invitation.usecase
 import { DeclineInvitationUseCase } from "./application/decline-invitation.usecase";
 import { PrismaService } from "@/src/contexts/shared/persistance/prisma.service";
 import { EmailModule } from "../shared/infrastructure/email/email.module";
+import { EmailService } from "../shared/infrastructure/email/email.service";
 import { StoreRepositoryAdapter } from "../stores/infraestructure/adapters/store.repository";
 import { UserRepositoryAdapter } from "../users/infraestructure/adapters/user.repository";
 import { RoleRepositoryAdapter } from "../stores/infraestructure/adapters/role.repository";
@@ -35,6 +36,10 @@ import { ROLE_REPOSITORY } from "../stores/domain/repos/role.repository";
         {
             provide: ROLE_REPOSITORY,
             useClass: RoleRepositoryAdapter,
+        },
+        {
+            provide: 'IEmailService',
+            useClass: EmailService,
         },
         GetAllMembersUseCase,
         InviteMemberUseCase,
