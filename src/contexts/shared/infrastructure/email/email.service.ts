@@ -24,7 +24,8 @@ export class EmailService implements IEmailService {
         storeName: string,
         inviterName: string,
         roleName: string,
-        frontendUrl: string = process.env.FRONTEND_URL || 'http://localhost:3000'
+        frontendUrl: string = process.env.FRONTEND_URL || 'http://localhost:3000',
+        message: string = '',
     ): Promise<void> {
         
         const mailOptions = {
@@ -40,6 +41,8 @@ export class EmailService implements IEmailService {
                     <div style="text-align: center; margin: 30px 0;">
                         <input type="text" value="${invitationToken}" readonly style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
                     </div>
+
+                    <p>${message}</p>
                     <p>Esta invitación expirará en 7 días.</p>
                     <p>Si no esperabas esta invitación, puedes ignorar este correo.</p>
                     <p>Saludos,<br>El equipo de ${storeName}</p>
