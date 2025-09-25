@@ -4,7 +4,7 @@ import { InviteMemberDto } from "../infrastructure/dto/invite-member.dto";
 import { Invitation } from "../domain/entities/Invitation";
 import { Result, success, failure } from "../../shared/ROP/result";
 import { MEMBER_REPOSITORY } from "../domain/repos/member.repository";
-import { IEmailService } from "../../shared/infrastructure/email/interfaces/email.service.interface";
+import { IEmailService, EMAIL_SERVICE } from "../../shared/infrastructure/email/interfaces/email.service.interface";
 import { StoreRepository } from "../../stores/domain/repos/store.repository";
 import { UserRepository } from "../../users/domain/repos/user.repository";
 import { RoleRepository } from "../../stores/domain/repos/role.repository";
@@ -19,6 +19,7 @@ export class InviteMemberUseCase {
     constructor(
         @Inject(MEMBER_REPOSITORY)
         private readonly memberRepository: MemberRepository,
+        @Inject(EMAIL_SERVICE)
         private readonly emailService: IEmailService,
         @Inject(STORE_REPOSITORY)
         private readonly storeRepository: StoreRepository,
@@ -46,6 +47,7 @@ export class InviteMemberUseCase {
                 throw new Error('Role ID is required');
             }
 
+
             const existingInvitation = await this.memberRepository.findByEmailAndStore(
                 inviteDto.email, 
                 store_id
@@ -57,41 +59,52 @@ export class InviteMemberUseCase {
 
             const token = this.generateInvitationToken();
             const expires_at = inviteDto.expires_at || addDays(new Date(), 7);
+            
+            console.log(`Invitation created for ${inviteDto.email} with token: ${token}`);
+            
+            const store = await this.storeRepository.findById(store_id);
+            const inviter = await this.userRepository.findById(invited_by_id);
+            if (!store) {
+                throw new Error(`La tienda con id ${store_id} no existe!`);
+            }
+            if (!inviter) {
+                throw new Error(`El usuario con id ${invited_by_id} no existe!`);
+            }
+            const userToInvite = await this.userRepository.findByEmail(inviteDto.email);
+            if (!userToInvite) {
+                throw new Error(`El usuario con email ${inviteDto.email} no existe!`);
+            }
+            const role = await this.roleRepository.findUnique(inviteDto.role_id);
+            if (!role) {
+                throw new Error(`El rol con id ${inviteDto.role_id} no existe!`);
+            }
+
             const invitation = await this.memberRepository.inviteMember({
-                email: inviteDto.email,
+                email: inviteDto.email.trim(),
                 store_id,
                 role_id: inviteDto.role_id,
                 invited_by_id,
                 token,
                 expires_at
             });
-
-            console.log(`Invitation created for ${inviteDto.email} with token: ${token}`);
-
-            // Fetch store, user, and role information for email
-            const store = await this.storeRepository.findById(store_id);
-            const inviter = await this.userRepository.findById(invited_by_id);
-            const role = await this.roleRepository.findUnique(inviteDto.role_id);
-
-            if (store && inviter && role) {
-                // Send invitation email
-                try {
-                    await this.emailService.sendInvitationEmail(
+            
+            try {
+                 const emailPromise = this.emailService.sendInvitationEmail(
                         inviteDto.email,
                         token,
                         store.getName(),
                         `${inviter.nameValue} ${inviter.lastNameValue}`,
-                        role.name
+                        role.name,
+                        '',
+                        inviteDto.message?.trim()
                     );
-                    console.log(`Invitation email sent to ${inviteDto.email}`);
+                    
+                    Promise.all([emailPromise]).then(() => {
+                        console.log(`[EMAIL] Invitation email sent to ${inviteDto.email}`);
+                    });
                 } catch (emailError) {
                     console.error('Failed to send invitation email:', emailError);
-                    // Don't throw error here as the invitation was created successfully
-                    // We can log the error and continue
                 }
-            } else {
-                console.error('Failed to fetch store, user, or role information for email');
-            }
 
             return success(invitation);
         } catch (error) {
