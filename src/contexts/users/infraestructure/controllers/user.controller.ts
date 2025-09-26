@@ -24,9 +24,10 @@ export class UserController {
 
         const decoded = await this.verifyUseCase.execute(token, process.env.JWT_ACCESS_SECRET || '');
         if (!decoded.isSuccess) {
-            throw new UnauthorizedException(decoded.error.message);
+            throw new UnauthorizedException('La sesión ha terminado. Inicia sesión de nuevo!');
         }
-        
-        return this.userUseCase.execute(decoded.value);
+        const user = await this.userUseCase.execute(decoded.value)
+        if (!user.isSuccess) throw new UnauthorizedException('La sesión ha terminado, inicia sesión de nuevo.')
+        return user
     }
 }
