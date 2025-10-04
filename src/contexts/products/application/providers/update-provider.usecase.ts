@@ -10,12 +10,28 @@ export class UpdateProviderUseCase {
         private readonly providerRepository: ProviderRepository
     ) {}
 
-    async execute(id: string, provider: Omit<ProviderPrimitives, 'id' | 'updated_at' | 'deleted_at' | 'created_at'>): Promise<Result<Provider, Error>> {
+    async execute(id: string, providerPartial: Partial<Omit<ProviderPrimitives, 'id' | 'updated_at' | 'deleted_at' | 'created_at'>>): Promise<Result<Provider, Error>> {
         try {
-            const result = await this.providerRepository.save(Provider.update(id, provider))
-            return success(result)
+            const existingProvider = await this.providerRepository.findById(id);
+
+            if (!existingProvider) {
+                return failure(new Error('Provider not found'));
+            }
+
+            const mergedProviderPrimitives: Omit<ProviderPrimitives, 'id' | 'updated_at' | 'deleted_at' | 'created_at'> = {
+                name: providerPartial.name ?? existingProvider.toPrimitives().name,
+                description: providerPartial.description ?? existingProvider.toPrimitives().description,
+                store_id: providerPartial.store_id ?? existingProvider.toPrimitives().store_id,
+                contact_phone: providerPartial.contact_phone ?? existingProvider.toPrimitives().contact_phone,
+                contact_email: providerPartial.contact_email ?? existingProvider.toPrimitives().contact_email,
+                is_active: providerPartial.is_active ?? existingProvider.toPrimitives().is_active,
+            };
+
+            const updatedProvider = Provider.update(id, mergedProviderPrimitives);
+            const result = await this.providerRepository.save(updatedProvider);
+            return success(result);
         } catch (error) {
-            return failure(error as Error)
+            return failure(error as Error);
         }
     }
 }

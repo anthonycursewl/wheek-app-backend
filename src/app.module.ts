@@ -9,6 +9,7 @@ import { ReceptionsModule } from './contexts/receptions/receptions.module';
 import { InventoryModule } from './contexts/inventory/inventory.module';
 import { MemberModule } from './contexts/members/member.module';
 import { EmailModule } from './contexts/shared/infrastructure/email/email.module';
+import { NotificationModule } from './contexts/members/notification.module';
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { EmailModule } from './contexts/shared/infrastructure/email/email.module
     ReceptionsModule,
     InventoryModule,
     MemberModule,
-    EmailModule
+    EmailModule,
+    NotificationModule
   ],
   controllers: [],
   providers: [],

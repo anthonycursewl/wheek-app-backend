@@ -14,7 +14,7 @@ export class AdjustProductsUseCase {
         private readonly inventoryRepository: InventoryRepository
     ) {}
 
-    async execute(adjustProductsDto: AdjustProductsDto): Promise<Result<AdjustmentWithDetails, Error>> {
+    async execute(store_id: string, adjustProductsDto: AdjustProductsDto): Promise<Result<AdjustmentWithDetails, Error>> {
         try {
             if (adjustProductsDto.items.length === 0) {
                 throw new Error('No se proporcionaron items para la ajuste. Intenta de nuevo!')
@@ -26,7 +26,7 @@ export class AdjustProductsUseCase {
             }));
 
             const adjustment: Omit<Adjustment, 'id' | 'created_at' | 'updated_at'> = {
-                store_id: adjustProductsDto.store_id,
+                store_id: store_id, // Use the store_id from the parameter
                 user_id: adjustProductsDto.user_id,
                 adjustment_date: adjustProductsDto.adjustment_date || new Date(),
                 reason: adjustProductsDto.reason,
@@ -42,7 +42,7 @@ export class AdjustProductsUseCase {
             }));
             
             const updatedInventories = await this.inventoryRepository.deductMultipleStock(
-                adjustProductsDto.store_id,
+                store_id, // Use the store_id from the parameter
                 stockDeductionItems
             );
             

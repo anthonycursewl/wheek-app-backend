@@ -2,7 +2,7 @@ import { PrismaService } from "@/src/contexts/shared/persistance/prisma.service"
 import { Injectable } from "@nestjs/common";
 import { AdjustmentRepository } from "../../domain/repos/adjustment.repository";
 import { Adjustment, AdjustmentWithDetails } from "../../domain/entities/adjustment.entity";
-import { AdjustmentReason } from "@prisma/client";
+import { AdjustmentReason, Prisma } from "@prisma/client";
 
 @Injectable()
 export class AdjustmentRepositoryAdapter implements AdjustmentRepository {
@@ -88,16 +88,21 @@ export class AdjustmentRepositoryAdapter implements AdjustmentRepository {
         };
     }
 
-    async getAll(store_id: string, skip: number, take: number, criteria?: any): Promise<AdjustmentWithDetails[]> {
+    async getAll(
+        store_id: string,
+        skip: number,
+        take: number,
+        where: Prisma.inventory_adjustmentsWhereInput,
+        orderBy: Prisma.inventory_adjustmentsOrderByWithRelationInput[]
+    ): Promise<AdjustmentWithDetails[]> {
         const adjustments = await this.prismaService.inventory_adjustments.findMany({
             where: {
-                store_id,
+                ...where,
+                store_id, // Ensure store_id is always part of the where clause
             },
             skip,
             take,
-            orderBy: {
-                adjustment_date: 'desc'
-            },
+            orderBy,
             select: {
                 id: true,
                 notes: true,

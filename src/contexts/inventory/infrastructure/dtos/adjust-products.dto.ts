@@ -12,7 +12,7 @@ export enum AdjustmentReason {
 
 export class AdjustmentItemDto {
   @IsNotEmpty({ message: 'product_id is required' })
-  @IsUUID('all', { message: 'product_id must be a valid UUID' })
+  @IsString({ message: 'product_id must be a string' })
   product_id: string;
 
   @IsNotEmpty({ message: 'quantity is required' })
@@ -21,10 +21,6 @@ export class AdjustmentItemDto {
 }
 
 export class AdjustProductsDto {
-  @IsNotEmpty({ message: 'store_id is required' })
-  @IsUUID('all', { message: 'store_id must be a valid UUID' })
-  store_id: string;
-
   @IsNotEmpty({ message: 'user_id is required' })
   @IsString({ message: 'user_id must be a string' })
   user_id: string;

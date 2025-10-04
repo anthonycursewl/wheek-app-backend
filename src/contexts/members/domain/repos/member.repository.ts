@@ -10,7 +10,6 @@ export interface MemberRepository {
     }): Promise<any>
     findByEmailAndStore(email: string, store_id: string): Promise<any | null>
     findByToken(token: string): Promise<any | null>
-    updateInvitationStatus(id: string, status: string): Promise<any>
 }
 
 export const MEMBER_REPOSITORY = Symbol('MemberRepository');
