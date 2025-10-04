@@ -1,4 +1,6 @@
 import * as bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
+import { Role } from './role.entity';
 
 const SALT_ROUNDS = 10;
 
@@ -34,7 +36,7 @@ export class User {
   static async create(data: Omit<UserPrimitive, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'is_active' | 'icon_url'>): Promise<User> {
     const hashedPassword = await this.hashPassword(data.password);
     return new User(
-      crypto.randomUUID().split('-')[4],
+      uuidv4().split('-')[4],
       data.email,
       hashedPassword,
       data.name,

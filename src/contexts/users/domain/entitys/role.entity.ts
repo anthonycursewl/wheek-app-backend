@@ -1,7 +1,7 @@
+import { v4 as uuidv4 } from 'uuid';
 import { Store } from "@/src/contexts/stores/domain/entities/store.entity";
-import { UserRole } from "./user-role.entity";
-import { RolePermission, RolePermissionPrimitive } from "./role-permission.entity";
-import { get } from "http";
+import { UserRole } from './user-role.entity';
+import { RolePermission, RolePermissionPrimitive } from './role-permission.entity';
 
 export interface RolePrimitive {
     id: string;
@@ -30,35 +30,33 @@ export class Role {
         private deleted_at?: Date,
         private is_active: boolean = true,
 
-        // Relaciones
         private store?: Store,
         private permissions?: RolePermission[],
         private user_roles?: UserRole[],
     ) {}
 
-    static create(data: Omit<RolePrimitive, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'store' | 'permissions' | 'user_roles' | 'is_active'>): Role {
+    static create(data: Omit<RolePrimitive, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'store' | 'permissions' | 'user_roles' | 'is_active'> & { store_id: string }): Role {
         return new Role(
-            crypto.randomUUID(),
+            uuidv4(),
             data.name,
             data.store_id,
             new Date(),
             data.description || '',
             undefined,
             undefined,
-            true,
+            true
         );
     }
 
     static update(data: Omit<RolePrimitive, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'permissions'>) {
         return new Role(
-            '',
             data.name.trim(),
             data.store_id,
+            '',
             new Date(),
-            data.description?.trim() || '',
+            '',
             new Date(),
             new Date(),
-            data.is_active,
         )
     }
 

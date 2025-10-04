@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 import { Store } from '@/src/contexts/stores/domain/entities/store.entity';
 import { User } from './user.entity';
 import { Role, RolePrimitive } from './role.entity';
@@ -36,7 +36,7 @@ export class UserRole {
 
   static create(data: Omit<UserRolePrimitive, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'user' | 'role' | 'store'>): UserRole {
     return new UserRole(
-      crypto.randomUUID(),
+      uuidv4(),
       data.user_id,
       data.role_id,
       data.store_id,

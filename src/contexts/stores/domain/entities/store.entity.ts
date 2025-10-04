@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 export interface StoreData {
     id: string;
     name: string;
@@ -19,7 +21,7 @@ export class Store {
 
     static create(data: Omit<StoreData, 'id' | 'created_at' | 'is_active'>): Store {
         return new Store(
-            crypto.randomUUID(),
+            uuidv4(),
             data.name,
             data.description || null,
             true,

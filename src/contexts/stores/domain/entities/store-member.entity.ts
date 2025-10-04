@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 export interface StoreMemberData {
     id: string;
     user_id: string;
@@ -17,7 +19,7 @@ export class StoreMember {
 
     static create(data: Omit<StoreMemberData, 'id' | 'created_at' | 'is_member_active'>): StoreMember {
         return new StoreMember(
-            crypto.randomUUID().split('-')[4],
+            uuidv4().split('-')[4],
             data.user_id,
             data.store_id,
             true,
