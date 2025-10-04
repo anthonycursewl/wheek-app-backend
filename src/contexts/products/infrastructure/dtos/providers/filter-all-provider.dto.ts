@@ -11,27 +11,22 @@ const TransformToBoolean = () => {
 
 export class FilterAllProviderDto {
   @IsOptional()
-  @IsBoolean()
   @TransformToBoolean()
   today?: boolean;
 
   @IsOptional()
-  @IsBoolean()
   @TransformToBoolean()
   thisWeek?: boolean;
 
   @IsOptional()
-  @IsBoolean()
   @TransformToBoolean()
   thisMonth?: boolean;
 
   @IsOptional()
-  @IsBoolean()
   @TransformToBoolean()
   deleted?: boolean;
 
   @IsOptional()
-  @IsBoolean()
   @TransformToBoolean()
   dateDesc?: boolean;
 
