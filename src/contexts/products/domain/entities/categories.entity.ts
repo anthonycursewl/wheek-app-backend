@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { v4 as uuidv4 } from 'uuid';
 
 export interface CategoryPrimitives {
     id: string;
@@ -38,7 +38,7 @@ export class Category {
     }
 
     public static create(data: Omit<CategoryPrimitives, 'id' | 'created_at' | 'updated_at'>): Category {
-        const categoryId = randomUUID();
+        const categoryId = uuidv4();
         return new Category(
             categoryId,
             data.name.trim(),

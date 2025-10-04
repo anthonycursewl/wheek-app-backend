@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface FichaPrimitive {
     id: string;
@@ -41,7 +41,7 @@ export class Ficha {
      * Factory method to create a new Ficha instance
      */
     public static create(data: CreateFichaData): Ficha {
-        const fichaId = randomUUID();
+        const fichaId = uuidv4();
         return new Ficha(
             fichaId,
             data.condition,

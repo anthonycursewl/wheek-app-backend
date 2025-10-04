@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { v4 as uuidv4 } from "uuid";
 
 export interface ProviderPrimitives {
     id: string;
@@ -52,7 +52,7 @@ export class Provider {
     }
 
     public static create(data: Omit<ProviderPrimitives, 'id' | 'created_at' | 'deleted_at' | 'updated_at'>): Provider {
-        const providerId = randomUUID();
+        const providerId = uuidv4();
         return new Provider(
             providerId,
             data.name.trim(),
