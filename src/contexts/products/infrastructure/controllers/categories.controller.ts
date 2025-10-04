@@ -1,4 +1,4 @@
-import { Post, Body, UsePipes, ValidationPipe, Controller, Get, Query, Param, Put, BadRequestException } from "@nestjs/common";
+import { Post, Body, UsePipes, ValidationPipe, Controller, Get, Query, Param, Put, BadRequestException, Delete } from "@nestjs/common";
 import { CreateCategoryUseCase } from "../../application/categories/create-category.usecase";
 import { CreateCategoryDto } from "../dtos/categories/create-category.dto";
 import { GetAllCategoriesUseCase } from "../../application/categories/get-all-categories.usecase";
@@ -7,13 +7,16 @@ import { CategoryPrimitives } from "../../domain/entities/categories.entity";
 import { UpdateCategoryUseCase } from "../../application/categories/update-category.usecase";
 import { failure } from "@/src/contexts/shared/ROP/result";
 import { FilterCategoryDto } from "../dtos/categories/filter-category.dto";
+import { GetAllCategoriesQueryDto } from "../dtos/categories/get-all-categories-query.dto";
+import { DeleteCategoryUseCase } from "../../application/categories/delete-category.usecase"; // Import new use case
 
 @Controller('categories')
 export class CategoryController {
     constructor(
         private readonly createCategoryUseCase: CreateCategoryUseCase,
         private readonly getAllCategoriesUseCase: GetAllCategoriesUseCase,
-        private readonly updateCategoryUseCase: UpdateCategoryUseCase
+        private readonly updateCategoryUseCase: UpdateCategoryUseCase,
+        private readonly deleteCategoryUseCase: DeleteCategoryUseCase // Inject new use case
     ) {}
 
     @Post('create')
@@ -26,24 +29,28 @@ export class CategoryController {
     @Get('all/:store_id')
     @Permissions('category:read')
     async getAllCategoriesByStoreId(
-        @Query() query: { skip: string, take: string }, 
         @Param('store_id') store_id: string,
-        @Query() filter: FilterCategoryDto
+        @Query() query: GetAllCategoriesQueryDto
     ) {
-        console.log(filter)
-        if (!query.skip || !query.take) query.skip = '0'; query.take = '10'
-        const result = await this.getAllCategoriesUseCase.execute(store_id, Number(query.skip), Number(query.take), filter);
-        console.log(result)
+        const skip = query.skip ? Number(query.skip) : 0;
+        const take = query.take ? Number(query.take) : 10;
 
-        if (!result.isSuccess) throw new BadRequestException(result.error?.message || 'Error al obtener las categorías');
-        return result;
+        const categories = await this.getAllCategoriesUseCase.execute(store_id, skip, take, query);
+        return categories;
     }
 
     @Put('update/:id')
     @Permissions('category:update')
     async update(@Param('id') id: string, @Body() category: CategoryPrimitives) {
-        if (!category.name) return failure(new Error('Name is required'))
-        if (!id) return failure(new Error('Wheek | El ID es requerido para actualizar. Intenta de nuevo.'))
+        if (!category.name) throw new BadRequestException('Name is required');
+        if (!id) throw new BadRequestException('Wheek | El ID es requerido para actualizar. Intenta de nuevo.');
         return await this.updateCategoryUseCase.execute(id, category);
+    }
+
+    @Delete('delete/:id') // Add new delete endpoint
+    @Permissions('category:delete')
+    async delete(@Param('id') id: string) {
+        if (!id) throw new BadRequestException('Category ID is required');
+        return this.deleteCategoryUseCase.execute(id);
     }
 }

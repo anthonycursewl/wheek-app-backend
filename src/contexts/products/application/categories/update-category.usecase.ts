@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { Category, CategoryPrimitives } from "../../domain/entities/categories.entity";
 import { failure, Result, success } from "@/src/contexts/shared/ROP/result";
 import { CategoryRepository } from "../../domain/repos/category.repository";
@@ -14,6 +14,9 @@ export class UpdateCategoryUseCase {
     async execute(id: string, data: CategoryPrimitives): Promise<Result<Category, Error>> {
         try {
             const category = await this.categoryRepository.findById(id);
+            if (!category) {
+                throw new NotFoundException('Category not found');
+            }
             const categoryPrimitives = category.toPrimitives();
             
             const updatedCategory = Category.update({ 

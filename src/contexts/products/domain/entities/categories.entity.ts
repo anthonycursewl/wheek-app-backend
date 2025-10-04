@@ -17,6 +17,10 @@ export class Category {
     private readonly store_id: string;
     private readonly is_active: boolean;
 
+    get is_active_status(): boolean {
+        return this.is_active;
+    }
+
     private constructor(
         id: string,
         name: string,

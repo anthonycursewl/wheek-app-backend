@@ -12,9 +12,11 @@ import { EmailService } from "../shared/infrastructure/email/email.service";
 import { StoreRepositoryAdapter } from "../stores/infraestructure/adapters/store.repository";
 import { UserRepositoryAdapter } from "../users/infraestructure/adapters/user.repository";
 import { RoleRepositoryAdapter } from "../stores/infraestructure/adapters/role.repository";
+import { NotificationRepositoryAdapter } from "./infrastructure/adapters/notification.repository";
 import { STORE_REPOSITORY } from "../stores/domain/repos/store.repository";
 import { USER_REPOSITORY } from "../users/domain/repos/user.repository";
 import { ROLE_REPOSITORY } from "../stores/domain/repos/role.repository";
+import { NOTIFICATION_REPOSITORY } from "./domain/repos/notification.repository";
 
 @Module({
     imports: [EmailModule],
@@ -36,6 +38,10 @@ import { ROLE_REPOSITORY } from "../stores/domain/repos/role.repository";
         {
             provide: ROLE_REPOSITORY,
             useClass: RoleRepositoryAdapter,
+        },
+        {
+            provide: NOTIFICATION_REPOSITORY,
+            useClass: NotificationRepositoryAdapter,
         },
         GetAllMembersUseCase,
         InviteMemberUseCase,

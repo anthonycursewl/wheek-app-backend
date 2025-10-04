@@ -18,5 +18,6 @@ import { USER_REPOSITORY } from '@users/domain/repos/user.repository';
       useClass: UserRepositoryAdapter,
     },
 ],
+  exports: [UserUseCase],
 })
-export class UserModule {} 
+export class UserModule {}

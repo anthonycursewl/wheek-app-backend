@@ -39,6 +39,7 @@ export class RoleRepositoryAdapter implements RoleRepository {
             const roles = await this.prisma.roles.findMany({
                 where: {
                     store_id,
+                    is_active: true,
                 },
                 skip,
                 take,
@@ -160,12 +161,20 @@ export class RoleRepositoryAdapter implements RoleRepository {
         }
     }
 
-    async update(id: string, role: Role): Promise<RoleWithPermissions> {
+    async findById(id: string, store_id: string): Promise<RolePrimitive | null> {
+        const role = await this.prisma.roles.findUnique({
+            where: { id, store_id },
+        });
+        return role ? (role as RolePrimitive) : null;
+    }
+
+    async update(id: string, store_id: string, role: Role): Promise<RoleWithPermissions> {
         try {
             const rolePrimitive = role.toPrimitive()
            const updated = await this.prisma.roles.update({
             where: {
                 id,
+                store_id,
             },
             data: {
                 name: rolePrimitive.name,
@@ -184,12 +193,12 @@ export class RoleRepositoryAdapter implements RoleRepository {
                         permission: {
                             select: {
                                 resource: true,
-                                action: true
-                            }
-                        }
-                    }
-                }
-            }
+                                action: true,
+                            },
+                        },
+                    },
+                },
+            },
            })
 
            return updated as RoleWithPermissions;

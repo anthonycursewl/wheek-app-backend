@@ -9,6 +9,7 @@ import { ADJUSTMENT_REPOSITORY } from "./domain/repos/adjustment.repository";
 import { AdjustmentRepositoryAdapter } from "./infrastructure/adapters/adjusment.repository";
 import { AdjustmentController } from "./infrastructure/controllers/adjustment.controller";
 import { GetAllAdjustmentsUseCase } from "./application/get-all-adjustments.usecase";
+import { AdjustmentCriteriaBuilder } from "./builders/adjustment-criteria.builder";
 
 @Module({
     controllers: [InventoryController, AdjustmentController],
@@ -25,7 +26,8 @@ import { GetAllAdjustmentsUseCase } from "./application/get-all-adjustments.usec
         },
         GetAllInventoryUseCase,
         AdjustProductsUseCase,
-        GetAllAdjustmentsUseCase
+        GetAllAdjustmentsUseCase,
+        AdjustmentCriteriaBuilder
     ],
     exports: [INVENTORY_REPOSITORY, ADJUSTMENT_REPOSITORY]
 })

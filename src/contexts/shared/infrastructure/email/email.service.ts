@@ -59,6 +59,53 @@ export class EmailService implements IEmailService {
         }
     }
 
+    async sendDeclineEmail(
+        to: string,
+        storeName: string,
+        invitedUserName: string,
+        inviterName: string
+    ): Promise<void> {
+        const mailOptions = {
+            from: process.env.SMTP_FROM || process.env.SMTP_USER,
+            to: to,
+            subject: `Invitación rechazada para ${storeName}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h2 style="color: #d32f2f; margin: 0;">Invitación Rechazada</h2>
+                    </div>
+                    
+                    <p style="font-size: 16px; line-height: 1.5; color: #333;">Hola <strong>${inviterName}</strong>,</p>
+                    
+                    <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                        <p style="margin: 0; color: #555;">Te informamos que <strong>${invitedUserName}</strong> ha decidido rechazar la invitación para unirse a <strong>${storeName}</strong>.</p>
+                    </div>
+                    
+                    <p style="font-size: 16px; line-height: 1.5; color: #333;">La invitación ha sido marcada como rechazada en nuestro sistema.</p>
+                    
+                    <div style="margin: 30px 0; padding: 20px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px;">
+                        <p style="margin: 0; color: #856404; font-size: 14px;"><strong>Nota:</strong> Si deseas invitar a otra persona, puedes generar una nueva invitación desde el panel de administración.</p>
+                    </div>
+                    
+                    <p style="font-size: 16px; line-height: 1.5; color: #333;">Gracias por usar nuestro servicio.</p>
+                    
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; color: #666; font-size: 14px;">
+                        <p style="margin: 0;">Este es un correo automático, por favor no respondas a este mensaje.</p>
+                        <p style="margin: 5px 0 0 0;">Saludos,<br>El equipo de Wheek App</p>
+                    </div>
+                </div>
+            `,
+        };
+
+        try {
+            await this.transporter.sendMail(mailOptions);
+            console.log(`Decline email sent to ${to}`);
+        } catch (error) {
+            console.error('Error sending decline email:', error);
+            throw new Error('Failed to send decline email');
+        }
+    }
+
     async sendTestEmail(to: string): Promise<void> {
         const mailOptions = {
             from: process.env.SMTP_FROM || process.env.SMTP_USER,
@@ -80,6 +127,23 @@ export class EmailService implements IEmailService {
         } catch (error) {
             console.error('Error sending test email:', error);
             throw new Error('Failed to send test email');
+        }
+    }
+
+    async sendNotificationEmail(to: string, subject: string, htmlContent: string): Promise<void> {
+        const mailOptions = {
+            from: process.env.SMTP_FROM || process.env.SMTP_USER,
+            to: to,
+            subject: subject,
+            html: htmlContent,
+        };
+
+        try {
+            await this.transporter.sendMail(mailOptions);
+            console.log(`Notification email sent to ${to} with subject: ${subject}`);
+        } catch (error) {
+            console.error('Error sending notification email:', error);
+            throw new Error('Failed to send notification email');
         }
     }
 

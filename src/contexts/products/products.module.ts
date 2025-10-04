@@ -21,9 +21,13 @@ import { UpdateCategoryUseCase } from "./application/categories/update-category.
 import { UpdateProviderUseCase } from "./application/providers/update-provider.usecase";
 import { SoftDeleteProviderUseCase } from "./application/providers/soft-delete-provider.usecase";
 import { SearchProductUseCase } from "./application/products/search-product.usecase";
+import { DeleteCategoryUseCase } from "./application/categories/delete-category.usecase";
+import { EmailModule } from "../shared/infrastructure/email/email.module";
+import { StoresModule } from "../stores/stores.module";
+import { UserModule } from "../users/user.module";
 
 @Module({
-    imports: [],
+    imports: [EmailModule, StoresModule, UserModule],
     controllers: [ProductController, CategoryController, ProvidersController],
     providers: [
         PrismaService,
@@ -50,6 +54,7 @@ import { SearchProductUseCase } from "./application/products/search-product.usec
         UpdateCategoryUseCase,
         UpdateProviderUseCase,
         SoftDeleteProviderUseCase,
+        DeleteCategoryUseCase,
         SearchProductUseCase
     ]
 })

@@ -1,6 +1,7 @@
 // Core
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 
 // Documention
@@ -41,6 +42,11 @@ async function bootstrap() {
   
   
   app.useGlobalInterceptors(new LoggingInterceptor());
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true,
+    whitelist: true,
+    forbidNonWhitelisted: false, // Temporarily set to false for debugging
+  }));
 
   // Prisma 5.0.0+ handles connection cleanup automatically
   // No need for explicit shutdown hooks with the library engine

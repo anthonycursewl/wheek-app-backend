@@ -4,56 +4,45 @@ import { Member } from "../domain/entities/Member";
 import { Invitation } from "../domain/entities/Invitation";
 import { Result, success, failure } from "../../shared/ROP/result";
 import { MEMBER_REPOSITORY } from "../domain/repos/member.repository";
+import { NotificationRepository } from "../domain/repos/notification.repository";
+import { NOTIFICATION_REPOSITORY } from "../domain/repos/notification.repository";
+import { USER_REPOSITORY, UserRepository } from "../../users/domain/repos/user.repository";
 
 @Injectable()
 export class AcceptInvitationUseCase {
     constructor(
         @Inject(MEMBER_REPOSITORY)
-        private readonly memberRepository: MemberRepository
+        private readonly memberRepository: MemberRepository,
+        @Inject(NOTIFICATION_REPOSITORY)
+        private readonly notificationRepository: NotificationRepository,
+        @Inject(USER_REPOSITORY)
+        private readonly userRepository: UserRepository
     ) {}
 
-    async execute(token: string, user_id: string): Promise<Result<Member, Error>> {
+    async execute(notification_id: string, user_id: string) {
         try {
-            const invitation = await this.memberRepository.findByToken(token);
+            const invitation = await this.notificationRepository.findById(notification_id);
+            if (!invitation) return failure(new Error('Invitation not found'));
 
-            if (!invitation) {
-                throw new Error('Invalid invitation token');
+            const authenticatedUser = await this.userRepository.findById(user_id);
+            if (!authenticatedUser) {
+                throw new Error('Usuario autenticado no encontrado.');
             }
 
-            if (new Date() > invitation.expires_at) {
-                await this.memberRepository.updateInvitationStatus(invitation.id, 'EXPIRED');
-                throw new Error('Invitation has expired');
+            if (authenticatedUser.emailValue !== invitation.email) {
+                throw new Error('No tienes permisos para aceptar esta invitación.');
             }
 
-            if (invitation.status !== 'PENDING') {
-                throw new Error('Invitation is no longer valid');
+            const acceptedInvitation = await this.notificationRepository.acceptNotification(notification_id, user_id);
+            
+            if (!acceptedInvitation) {
+                throw new Error('Error al actualizar el estado de la invitación. Intenta de nuevo.');
             }
 
-            await this.memberRepository.updateInvitationStatus(invitation.id, 'ACCEPTED');
-
-            const member: Member = {
-                id: invitation.id,
-                user_id,
-                store_id: invitation.store_id,
-                role_id: invitation.role_id,
-                is_active: true,
-                created_at: invitation.created_at,
-                user: {
-                    name: '',
-                    last_name: '',
-                    username: '',
-                    email: invitation.email,
-                    icon_url: undefined
-                },
-                role: {
-                    id: invitation.role.id,
-                    name: invitation.role.name
-                }
-            };
-
-            return success(member);
+            return success(acceptedInvitation);
         } catch (error) {
             return failure(error);
         }
     }
+        
 }

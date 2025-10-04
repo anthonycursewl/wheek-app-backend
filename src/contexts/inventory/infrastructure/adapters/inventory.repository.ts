@@ -1,6 +1,7 @@
 import { PrismaService } from "@/src/contexts/shared/persistance/prisma.service";
 import { Injectable } from "@nestjs/common";
 import {  InventoryRepository, InventoryWithDetails, Inventory } from "../../domain/repos/inventory.repository";
+import { FilterInventoryDto } from "../dtos/filter-inventory.dto";
 
 @Injectable()
 export class InventoryRepositoryAdapter implements InventoryRepository {
@@ -8,46 +9,68 @@ export class InventoryRepositoryAdapter implements InventoryRepository {
         private readonly prismaService: PrismaService
     ) {}
 
-    async getAll(store_id: string, skip: number = 0, take: number = 10): Promise<InventoryWithDetails[]> {
-        const inventory = await this.prismaService.inventory.findMany({
-            where: {
-                store_id
-            },
-            skip,
-            take,
-            select: {
-                id: true,
-                store: {
-                    select: {
-                        name: true,
-                    }
-                },
-                product: {
-                    select: {
-                        w_ficha: {
-                            select: {
-                                condition: true,
-                                cost: true,
-                            }
-                        },
-                        name: true,
-                    }
-                },
-                quantity: true, 
-                updated_at: true
-            }
-        })
+    async getAll(store_id: string, skip: number = 0, take: number = 10, filters?: FilterInventoryDto): Promise<InventoryWithDetails[]> {
+        let query = `
+            SELECT 
+                i.id,
+                s.name as store_name,
+                p.name as product_name,
+                wf.condition,
+                wf.cost,
+                i.quantity,
+                i.updated_at
+            FROM inventory i
+            JOIN stores s ON i.store_id = s.id
+            JOIN products p ON i.product_id = p.id
+            LEFT JOIN w_fichas wf ON p.id = wf.product_id
+            WHERE i.store_id = $1::uuid
+        `;
+        const params: any[] = [store_id];
 
-        return inventory.map((inventory) => ({
-           ...inventory,
-           product: {
-            ...inventory.product,
-            w_ficha: inventory.product.w_ficha ? {
-                condition: inventory.product.w_ficha.condition || '',
-                cost: Number(inventory.product.w_ficha.cost)
-            } : null
-           } 
-        }))
+        if (filters) {
+            let paramIndex = 2;
+            if (filters.lowStock) {
+                query += ` AND i.quantity < p.low_stock_threshold`;
+            }
+            if (filters.outOfStock) {
+                query += ` AND i.quantity = 0`;
+            }
+            if (filters.hasSales) {
+                query += ` AND EXISTS (SELECT 1 FROM sale_items si WHERE si.product_id = p.id)`;
+            }
+            if (filters.hasReceptions) {
+                query += ` AND EXISTS (SELECT 1 FROM reception_items ri WHERE ri.product_id = p.id)`;
+            }
+            if (filters.lastUpdated_start) {
+                query += ` AND i.updated_at >= $${paramIndex++}`;
+                params.push(new Date(filters.lastUpdated_start));
+            }
+            if (filters.lastUpdated_end) {
+                query += ` AND i.updated_at <= $${paramIndex++}`;
+                params.push(new Date(filters.lastUpdated_end));
+            }
+        }
+
+        query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+        params.push(take, skip);
+
+        const result: any[] = await this.prismaService.$queryRawUnsafe(query, ...params);
+
+        return result.map((row) => ({
+            id: row.id,
+            store: {
+                name: row.store_name,
+            },
+            product: {
+                name: row.product_name,
+                w_ficha: row.condition ? {
+                    condition: row.condition,
+                    cost: Number(row.cost),
+                } : null,
+            },
+            quantity: row.quantity,
+            updated_at: row.updated_at,
+        }));
     }
 
     async deductStock(store_id: string, product_id: string, quantity: number): Promise<Inventory> {

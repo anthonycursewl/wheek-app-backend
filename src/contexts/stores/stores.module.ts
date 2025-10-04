@@ -16,6 +16,7 @@ import { PermissionRepositoryAdapter } from "./infraestructure/adapters/permissi
 import { CreateRoleUseCase } from "./application/create-role-usecase";
 import { GetRoleByIdUseCase } from "./application/get-role-by-id.usecase";
 import { UpdateRoleUseCase } from "./application/update-role.usecase";
+import { SoftDeleteRoleUsecase } from "./application/soft-delete-role.usecase";
 
 @Module({
     imports: [],
@@ -42,8 +43,9 @@ import { UpdateRoleUseCase } from "./application/update-role.usecase";
         GetPermissionsUseCase,
         CreateRoleUseCase,
         GetRoleByIdUseCase,
-        UpdateRoleUseCase
+        UpdateRoleUseCase,
+        SoftDeleteRoleUsecase
     ],
-    exports: [],
+    exports: [FindByIdUseCase],
 })
 export class StoresModule {}

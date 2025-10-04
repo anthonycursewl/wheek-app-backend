@@ -22,8 +22,10 @@ export interface InventoryWithDetails {
     updated_at: Date
 }
 
+import { FilterInventoryDto } from "../../infrastructure/dtos/filter-inventory.dto";
+
 export interface InventoryRepository {
-    getAll(store_id: string, skip: number, take: number): Promise<InventoryWithDetails[]>
+    getAll(store_id: string, skip: number, take: number, filters?: FilterInventoryDto): Promise<InventoryWithDetails[]>
     
     /**
      * Deduct quantity from inventory for a specific product in a store

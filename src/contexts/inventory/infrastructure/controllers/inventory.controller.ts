@@ -3,6 +3,7 @@ import { GetAllInventoryUseCase } from "../../application/get-all-inventory.usec
 import { InventoryWithDetails } from "../../domain/repos/inventory.repository";
 import { Result } from "@/src/contexts/shared/ROP/result";
 import { Permissions } from "@/src/common/decorators/permissions.decorator";
+import { GetAllInventoryQueryDto } from "../dtos/get-all-inventory-query.dto";
 
 @Controller('inventory')
 export class InventoryController {
@@ -12,10 +13,12 @@ export class InventoryController {
 
     @Get('get/all')
     @Permissions('product:read')
-    async getAll(@Query('store_id') store_id: string, @Query('skip') skip: string = '0', @Query('take') take: string = '10'): Promise<Result<InventoryWithDetails[], Error>> {
-        const skipNumber = Number(skip) || 0    
-        const takeNumber = Number(take) || 10
-        const result = await this.getAllInventoryUseCase.execute(store_id, skipNumber, takeNumber)
+    async getAll(
+        @Query() query: GetAllInventoryQueryDto,
+    ): Promise<Result<InventoryWithDetails[], Error>> {
+        const skipNumber = Number(query.skip) || 0    
+        const takeNumber = Number(query.take) || 10
+        const result = await this.getAllInventoryUseCase.execute(query.store_id, skipNumber, takeNumber, query)
         if (!result.isSuccess) {
             throw new BadRequestException(result.error.message)
         }

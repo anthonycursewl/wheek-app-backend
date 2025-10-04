@@ -6,7 +6,8 @@ import { Permissions } from "@/src/common/decorators/permissions.decorator";
 import { UpdateProviderUseCase } from "../../application/providers/update-provider.usecase";
 import { UpdateProviderDTO } from "../dtos/providers/update-provider.dto";
 import { SoftDeleteProviderUseCase } from "../../application/providers/soft-delete-provider.usecase";
-import { FilterAllProviderDto } from "../dtos/providers/filter-all-provider.dto";
+import { GetAllProvidersQueryDto } from "../dtos/providers/get-all-providers-query.dto";
+import { ProviderQueryDto } from "../dtos/providers/provider-query.dto";
 
 @Controller('providers')
 export class ProvidersController {
@@ -21,32 +22,44 @@ export class ProvidersController {
     @Permissions('provider:create', 'provider:update')
     @UsePipes(new ValidationPipe({ transform: true }))
     async create(@Body() provider: CreateProviderDto) {
-        return this.createProviderUseCase.execute(provider);
+        const result = await this.createProviderUseCase.execute(provider);
+        if (!result.isSuccess) throw new BadRequestException(result.error?.message || 'Error al crear el proveedor'); 
+        return result;
     }
 
     @Get('all')
     @Permissions('provider:read')
     async getAllProviders(
-        @Query() query: { store_id: string, skip: string, take: string },
-        @Query() filters: FilterAllProviderDto
+        @Query() query: GetAllProvidersQueryDto
     ) {
         if (!query.store_id) throw new Error('Store ID is required')
-        if (!query.skip || !query.take) query.skip = '0'; query.take = '10'
+        const skip = query.skip ? parseInt(query.skip) : 0;
+        const take = query.take ? parseInt(query.take) : 10;
 
-        return this.getAllProvidersUseCase.execute(query.store_id, parseInt(query.skip), parseInt(query.take), filters)
+        const result = await this.getAllProvidersUseCase.execute(query.store_id, skip, take, query)
+        return result;
     }
 
     @Put('update/:id')
     @Permissions('provider:update')
-    async update(@Param('id') id: string, @Body() provider: UpdateProviderDTO) {
-        return this.updateProviderUseCase.execute(id, provider);
+    async update(
+        @Param('id') id: string,
+        @Query() query: ProviderQueryDto,
+        @Body() provider: UpdateProviderDTO
+    ) {
+        const providerWithStoreId = { ...provider, store_id: query.store_id };
+        const result = await this.updateProviderUseCase.execute(id, providerWithStoreId);
+        if (!result.isSuccess) throw new BadRequestException(result.error?.message || 'Error al actualizar el proveedor'); 
+        return result;
     }
 
     @Delete('delete/:id')
     @Permissions('provider:delete')
     async delete(@Param('id') id: string) {
-        if (!id) throw new BadRequestException('Provider ID is required')
-        return this.softDeleteProviderUseCase.execute(id);
+        if (!id) throw new BadRequestException('Provider ID is required');
+        const result = await this.softDeleteProviderUseCase.execute(id);
+        if (!result.isSuccess) throw new BadRequestException(result.error?.message || 'Error al eliminar el proveedor'); 
+        return result;
     }
     
 }

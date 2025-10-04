@@ -5,8 +5,13 @@ export class GetProductsDto {
     @IsUUID(4, { message: 'El id debe ser un UUID válido' })
     store_id: string;
 
-    skip: string;
-    take: string;
+    @IsOptional()
+    @IsString()
+    skip?: string;
+
+    @IsOptional()
+    @IsString()
+    take?: string;
 }
 
 export class ProductResponseDto {

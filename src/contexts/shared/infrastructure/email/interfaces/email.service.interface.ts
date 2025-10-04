@@ -11,6 +11,13 @@ export interface IEmailService {
         message?: string
     ): Promise<void>;
 
+    sendDeclineEmail(
+        to: string,
+        storeName: string,
+        invitedUserName: string,
+        inviterName: string
+    ): Promise<void>;
+
     sendTestEmail(to: string): Promise<void>;
 
     verifyConnection(): Promise<boolean>;

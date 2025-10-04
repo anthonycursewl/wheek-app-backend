@@ -25,6 +25,10 @@ export class Provider {
     private readonly contact_email: string;
     private readonly is_active: boolean | null; 
 
+    get is_active_status(): boolean | null {
+        return this.is_active;
+    }
+
     constructor(
         id: string,
         name: string,
