@@ -1,5 +1,5 @@
 // interfaces and common
-import { BadRequestException, Body, Controller, Get, Param, Post, Put, Query } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
 import { StoreData } from "../../domain/entities/store.entity";
 import { Store } from "../../domain/entities/store.entity";
 
@@ -19,8 +19,10 @@ import { CreateRoleUseCase } from "../../application/create-role-usecase";
 
 // DTOs
 import { RoleDto } from "../dtos/role.dto";
+import { UpdateRoleDto } from "../dtos/update-role.dto";
 import { GetRoleByIdUseCase } from "../../application/get-role-by-id.usecase";
 import { UpdateRoleUseCase } from "../../application/update-role.usecase";
+import { SoftDeleteRoleUsecase } from "../../application/soft-delete-role.usecase";
 
 @Controller('stores')
 export class StoreController {
@@ -33,7 +35,8 @@ export class StoreController {
         private readonly getPermissionsUseCase: GetPermissionsUseCase,
         private readonly createRoleUseCase: CreateRoleUseCase,
         private readonly getRoleByIdUseCase: GetRoleByIdUseCase,
-        private readonly updateRoleUseCase: UpdateRoleUseCase
+        private readonly updateRoleUseCase: UpdateRoleUseCase,
+        private readonly softDeleteRoleUsecase: SoftDeleteRoleUsecase
     ) {}
 
     @Post('create')
@@ -69,9 +72,23 @@ export class StoreController {
     }
 
     @Put('update/role/:id')
-    async updateRole(@Param('id') id: string, @Body() data: RoleDto) {
+    async updateRole(@Param('id') id: string, @Body() data: UpdateRoleDto) {
         if (!id) throw new BadRequestException('Wheek | ID Inválido.');
+        if (!data.store_id) throw new BadRequestException('Wheek | store_id es requerido en el body.');
         const r = await this.updateRoleUseCase.execute(id, data, data.permissions)
+        if (!r.isSuccess) throw new BadRequestException(`Wheek | ${r.error.message}`);
+        return r;
+    }
+
+    @Delete('delete/role/:id')
+    @Permissions('role:manage')
+    async softDeleteRole(
+        @Param('id') id: string,
+        @Query('store_id') store_id: string, // store_id is captured but not used in the use case directly
+    ) {
+        if (!id) throw new BadRequestException('Wheek | ID Inválido.');
+        if (!store_id) throw new BadRequestException('Wheek | store_id es requerido.');
+        const r = await this.softDeleteRoleUsecase.execute(id, store_id);
         if (!r.isSuccess) throw new BadRequestException(`Wheek | ${r.error.message}`);
         return r;
     }
