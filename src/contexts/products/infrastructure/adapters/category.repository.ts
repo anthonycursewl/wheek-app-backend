@@ -39,13 +39,13 @@ export class CategoryRepositoryAdapter implements CategoryRepository {
         return categories.map(category => Category.fromPrimitives(category));
     }
 
-    async findById(id: string): Promise<Category> {
+    async findById(id: string): Promise<Category | null> {
         const category = await this.prisma.categories.findUnique({
             where: { id }
         });
 
-        if (!category || !category.is_active) {
-            throw new Error('Category not found or inactive');
+        if (!category) {
+            return null;
         }
 
         return Category.fromPrimitives(category);
@@ -64,5 +64,22 @@ export class CategoryRepositoryAdapter implements CategoryRepository {
         });
 
         return Category.fromPrimitives(category);
+    }
+
+    async delete(id: string, isActive: boolean): Promise<Category | null> {
+        const updatedCategory = await this.prisma.categories.update({
+            where: { id },
+            data: { is_active: isActive },
+            select: {
+                id: true,
+                name: true,
+                store_id: true,
+                created_at: true,
+                updated_at: true,
+                is_active: true,
+                deleted_at: true, // Include deleted_at for consistency, even if not directly used for toggle
+            }
+        });
+        return Category.fromPrimitives(updatedCategory);
     }
 }

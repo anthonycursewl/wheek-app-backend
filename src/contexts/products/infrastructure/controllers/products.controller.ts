@@ -10,6 +10,7 @@ import { Permissions } from '@/src/common/decorators/permissions.decorator';
 import { ProductPrimitive } from '../../domain/entities/product.entity';
 import { SearchProductUseCase } from '../../application/products/search-product.usecase';
 import { ProductFilterDto } from '../dtos/products/get-products.dto';
+import { GetAllProductsQueryDto } from '../dtos/products/get-all-products-query.dto';
 
 @Controller('products')
 export class ProductController {
@@ -75,16 +76,13 @@ export class ProductController {
     @Get('get/all')
     @Permissions('product:read')
     async getAll(
-        @Query() query: { store_id: string; skip: string; take: string },
-        @Query() filter: ProductFilterDto,
+        @Query() query: GetAllProductsQueryDto,
     ) {
 
-        if (!query.skip || !query.take) query.skip = '0'; query.take = '10'
+        const skip = query.skip ? parseInt(query.skip) : 0;
+        const take = query.take ? parseInt(query.take) : 10;
 
-        const skip = parseInt(query.skip);
-        const take = parseInt(query.take);
-
-        const result = await this.getAllProductsUseCase.execute(query.store_id, skip, take, filter);
+        const result = await this.getAllProductsUseCase.execute(query.store_id, skip, take, query);
 
         if (!result.isSuccess) {
             throw new BadRequestException(result.error?.message || 'Error al obtener los productos');

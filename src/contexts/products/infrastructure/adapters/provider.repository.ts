@@ -59,17 +59,37 @@ export class ProviderRepositoryAdapter implements ProviderRepository {
         return providers.map(provider => Provider.fromPrimitives(provider))
     }
 
-    async delete(id: string): Promise<Provider | null> {
-        const providerDeleted = await this.prisma.providers.update({
+    async findById(id: string): Promise<Provider | null> {
+        const provider = await this.prisma.providers.findUnique({
             where: {
-                id: id
+                id: id,
             },
-            data: {
-                deleted_at: new Date(),
-                is_active: false
-            }
-        })
+        });
 
-        return Provider.fromPrimitives(providerDeleted)
+        if (!provider) {
+            return null;
+        }
+
+        return Provider.fromPrimitives(provider);
+    }
+
+    async delete(id: string, isActive: boolean): Promise<Provider | null> {
+        const updatedProvider = await this.prisma.providers.update({
+            where: { id },
+            data: { is_active: isActive },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                store_id: true,
+                created_at: true,
+                deleted_at: true,
+                updated_at: true,
+                contact_phone: true,
+                contact_email: true,
+                is_active: true,
+            }
+        });
+        return Provider.fromPrimitives(updatedProvider);
     }
 }
