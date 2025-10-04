@@ -63,14 +63,12 @@ export class ProductController {
         this.validateProductData(productData);
         this.validateFichaData(w_ficha);
 
-        const result = await this.createProductUseCase.execute({
+        const product = await this.createProductUseCase.execute({
             ...productData,
             w_ficha: w_ficha
         });
-
-        if (!result.isSuccess) throw new BadRequestException(result.error?.message || 'Error al crear el producto');
- 
-        return result
+        if (!product.isSuccess) throw new BadRequestException(product.error?.message || 'Error al crear el producto'); 
+        return product;
     }
 
     @Get('get/all')

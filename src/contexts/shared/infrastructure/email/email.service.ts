@@ -130,6 +130,23 @@ export class EmailService implements IEmailService {
         }
     }
 
+    async sendNotificationEmail(to: string, subject: string, htmlContent: string): Promise<void> {
+        const mailOptions = {
+            from: process.env.SMTP_FROM || process.env.SMTP_USER,
+            to: to,
+            subject: subject,
+            html: htmlContent,
+        };
+
+        try {
+            await this.transporter.sendMail(mailOptions);
+            console.log(`Notification email sent to ${to} with subject: ${subject}`);
+        } catch (error) {
+            console.error('Error sending notification email:', error);
+            throw new Error('Failed to send notification email');
+        }
+    }
+
     async verifyConnection(): Promise<boolean> {
         try {
             await this.transporter.verify();

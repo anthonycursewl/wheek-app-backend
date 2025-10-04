@@ -35,17 +35,15 @@ export class CategoryController {
         const skip = query.skip ? Number(query.skip) : 0;
         const take = query.take ? Number(query.take) : 10;
 
-        const result = await this.getAllCategoriesUseCase.execute(store_id, skip, take, query);
-
-        if (!result.isSuccess) throw new BadRequestException(result.error?.message || 'Error al obtener las categorías');
-        return result;
+        const categories = await this.getAllCategoriesUseCase.execute(store_id, skip, take, query);
+        return categories;
     }
 
     @Put('update/:id')
     @Permissions('category:update')
     async update(@Param('id') id: string, @Body() category: CategoryPrimitives) {
-        if (!category.name) return failure(new Error('Name is required'))
-        if (!id) return failure(new Error('Wheek | El ID es requerido para actualizar. Intenta de nuevo.'))
+        if (!category.name) throw new BadRequestException('Name is required');
+        if (!id) throw new BadRequestException('Wheek | El ID es requerido para actualizar. Intenta de nuevo.');
         return await this.updateCategoryUseCase.execute(id, category);
     }
 
