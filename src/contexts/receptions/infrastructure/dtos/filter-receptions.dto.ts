@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsBoolean, IsOptional, IsString, IsDate, isDateString, IsUUID } from "class-validator";
+import { IsBoolean, IsOptional, IsString, IsDate, IsUUID } from "class-validator";
 
 const TransformToBoolean = () => {
   return Transform(({ value }) => {
@@ -46,54 +46,52 @@ export class FilterAllReceptionDto {
   nameDesc?: boolean;
 
   @IsOptional()
-  @IsString()
+  @IsDate({ message: 'dateRange_start must be a valid date' })
   @Transform(({ value }) => {
     if (!value) return undefined;
     
-    // Handle URL-encoded ISO date strings
-    let decodedValue = value;
-    if (typeof value === 'string' && value.includes('%3A')) {
-      decodedValue = decodeURIComponent(value);
+    try {
+      // Handle URL-encoded ISO date strings
+      let decodedValue = value;
+      if (typeof value === 'string' && value.includes('%3A')) {
+        decodedValue = decodeURIComponent(value);
+      }
+      
+      // Parse the date and return as Date object
+      const date = new Date(decodedValue);
+      if (isNaN(date.getTime())) {
+        return value; // Return original value so class-validator can handle it
+      }
+      
+      return date;
+    } catch (error) {
+      return value; // Return original value so class-validator can handle it
     }
-    
-    // Validate if it's a valid date string
-    if (!isDateString(decodedValue)) {
-      throw new Error(`Invalid date format for dateRange_start: ${value}`);
-    }
-    
-    // Parse the date and return as Date object
-    const date = new Date(decodedValue);
-    if (isNaN(date.getTime())) {
-      throw new Error(`Invalid date value for dateRange_start: ${value}`);
-    }
-    
-    return date;
   })
   dateRange_start?: Date;
 
   @IsOptional()
-  @IsString()
+  @IsDate({ message: 'dateRange_end must be a valid date' })
   @Transform(({ value }) => {
     if (!value) return undefined;
     
-    // Handle URL-encoded ISO date strings
-    let decodedValue = value;
-    if (typeof value === 'string' && value.includes('%3A')) {
-      decodedValue = decodeURIComponent(value);
+    try {
+      // Handle URL-encoded ISO date strings
+      let decodedValue = value;
+      if (typeof value === 'string' && value.includes('%3A')) {
+        decodedValue = decodeURIComponent(value);
+      }
+      
+      // Parse the date and return as Date object
+      const date = new Date(decodedValue);
+      if (isNaN(date.getTime())) {
+        return value; // Return original value so class-validator can handle it
+      }
+      
+      return date;
+    } catch (error) {
+      return value; // Return original value so class-validator can handle it
     }
-    
-    // Validate if it's a valid date string
-    if (!isDateString(decodedValue)) {
-      throw new Error(`Invalid date format for dateRange_end: ${value}`);
-    }
-    
-    // Parse the date and return as Date object
-    const date = new Date(decodedValue);
-    if (isNaN(date.getTime())) {
-      throw new Error(`Invalid date value for dateRange_end: ${value}`);
-    }
-    
-    return date;
   })
   dateRange_end?: Date;
 

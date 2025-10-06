@@ -7,6 +7,9 @@ import { PrismaService } from "@/src/contexts/shared/persistance/prisma.service"
 import { GetAllReceptionsUseCase } from "./application/get-receptions.usecase";
 import { ReceptionCriteriaBuilder } from "./builders/reception-criteria.builder";
 import { DeleteReceptionUseCase } from "./application/delete-reception.usecase";
+import { REPORT_REPOSITORY } from "./domain/repos/report.repositort";
+import { ReportRepositoryAdapter } from "./infrastructure/adapters/report.repository";
+import { GenerateReceptionReportUseCase } from "./application/generate-report.usecase";
 
 @Module({
     imports: [],
@@ -20,10 +23,15 @@ import { DeleteReceptionUseCase } from "./application/delete-reception.usecase";
             provide: RECEPTION_REPOSITORY,
             useClass: ReceptionRepositoryAdapter
         },
+        {
+            provide: REPORT_REPOSITORY,
+            useClass: ReportRepositoryAdapter
+        },
         CreateReceptionUseCase,
         GetAllReceptionsUseCase,
         ReceptionCriteriaBuilder,
-        DeleteReceptionUseCase
+        DeleteReceptionUseCase,
+        GenerateReceptionReportUseCase
     ]
 })
 export class ReceptionsModule {}

@@ -39,10 +39,17 @@ export interface ReceptionsWithItems {
     } | null;
 }
 
+export interface ReceptionWithStore extends ReceptionsWithItems {
+    store: {
+        name: string;
+    };
+}
+
 export interface ReceptionRepository {
     create(reception: Omit<Reception, 'id'>): Promise<ReceptionsWithItems>;
     delete(id: string, isSoftDelete: boolean): Promise<ReceptionsWithItems>;
     getAll(store_id: string, skip: number, take: number, filters: any): Promise<ReceptionsWithItems[]>;
+    getReceptionById(id: string): Promise<ReceptionWithStore>;
 }
 
 export const RECEPTION_REPOSITORY = Symbol('ReceptionRepository');

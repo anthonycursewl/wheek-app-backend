@@ -1,5 +1,5 @@
 import { Permissions } from "@/src/common/decorators/permissions.decorator";
-import { Body, Controller, Post, UsePipes, ValidationPipe, BadRequestException, Get, Query, Delete, Param } from "@nestjs/common";
+import { Body, Controller, Post, UsePipes, ValidationPipe, BadRequestException, Get, Query, Delete, Param, UseInterceptors } from "@nestjs/common";
 import { CreateReceptionDto } from "../dtos/create-reception.dto";
 import { CreateReceptionUseCase } from "../../application/create-reception.usecase";
 import { ReceptionsWithItems } from "../../domain/repos/reception.repository";
@@ -7,13 +7,16 @@ import { Result } from "@/src/contexts/shared/ROP/result";
 import { GetAllReceptionsUseCase } from "../../application/get-receptions.usecase";
 import { FilterAllReceptionDto } from "../dtos/filter-receptions.dto";
 import { DeleteReceptionUseCase } from "../../application/delete-reception.usecase";
+import { GenerateReceptionReportUseCase } from "../../application/generate-report.usecase";
+import { PdfResponseInterceptor } from "../interceptors/pdf-response.interceptor";
 
 @Controller('receptions') 
 export class ReceptionsController {
     constructor(
         private readonly createReceptionUseCase: CreateReceptionUseCase,
         private readonly getAllReceptionsUseCase: GetAllReceptionsUseCase,
-        private readonly deleteReceptionUseCase: DeleteReceptionUseCase
+        private readonly deleteReceptionUseCase: DeleteReceptionUseCase,
+        private readonly generateReceptionReportUseCase: GenerateReceptionReportUseCase  
     ) {}
 
     @Post('create')
@@ -48,6 +51,25 @@ export class ReceptionsController {
 
     @Get('get/all') 
     @Permissions('product:read')
+    @UsePipes(new ValidationPipe({
+        whitelist: false,
+        forbidNonWhitelisted: false,
+        transform: true,
+        transformOptions: {
+            enableImplicitConversion: true,
+        },
+        exceptionFactory: (errors) => {
+            console.log('Validation errors:', JSON.stringify(errors, null, 2));
+            const errorMessages = errors.map(error => ({
+                field: error.property,
+                message: Object.values(error.constraints || {}).join(', '),
+            }));
+            return new BadRequestException({
+                isSuccess: false,
+                message: errorMessages,
+            });
+        },
+    }))
     async getAll(
         @Query('store_id') store_id: string, @Query('skip') skip: string = '0', @Query('take') take: string = '10',
         @Query() filters: FilterAllReceptionDto
@@ -70,6 +92,16 @@ export class ReceptionsController {
         const typeDelete = isSoft_delete === 'true'
         console.log(`Tipo de delete en la base de datos: ${typeDelete}`)
         const result = await this.deleteReceptionUseCase.execute(id, typeDelete)
+        if (!result.isSuccess) throw new BadRequestException(result.error.message)
+        return result
+    }
+
+    @Get('report/:id')
+    @Permissions('product:read')
+    @UseInterceptors(PdfResponseInterceptor)
+    async generateReport(@Param('id') id: string): Promise<Result<Buffer, Error>> {
+        if (!id) throw new BadRequestException('El ID de la recepcion es requerido')
+        const result = await this.generateReceptionReportUseCase.execute(id)
         if (!result.isSuccess) throw new BadRequestException(result.error.message)
         return result
     }

@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { ReceptionRepository } from "../../domain/repos/reception.repository";
+import { ReceptionRepository, ReceptionWithStore } from "../../domain/repos/reception.repository";
 import { ReceptionsWithItems, Reception } from "../../domain/repos/reception.repository";
 import { PrismaService } from "@/src/contexts/shared/persistance/prisma.service";
 
@@ -332,5 +332,56 @@ export class ReceptionRepositoryAdapter implements ReceptionRepository {
             console.error("Error en la transacción de eliminación de recepción:", error);
             throw new Error(`Error al eliminar la recepción: ${error instanceof Error ? error.message : 'Error desconocido'}`);
         }
+    }
+
+    async getReceptionById(id: string): Promise<ReceptionWithStore> {
+        const reception = await this.prisma.receptions.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                notes: true,
+                is_active: true,
+                items: {
+                    select: {
+                        quantity: true,
+                        cost_price: true,
+                        product: {
+                            select: {
+                                name: true
+                            }
+                        }
+                    }
+                },
+                reception_date: true,
+                status: true,
+                user: {
+                    select: {
+                        name: true
+                    }
+                },
+                store: {
+                    select: {
+                        name: true
+                    }
+                },
+                provider: {
+                    select: {
+                        name: true
+                    }
+                }
+            }
+        });
+
+        if (!reception) {
+            throw new Error(`Recepción con ID ${id} no encontrada`);
+        }
+
+        return {
+            ...reception,
+            items: reception.items.map(item => ({
+                ...item,
+                cost_price: Number(item.cost_price)
+            }))
+        };
     }
 }
