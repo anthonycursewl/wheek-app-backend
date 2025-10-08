@@ -74,7 +74,6 @@ export class ReceptionsController {
         @Query('store_id') store_id: string, @Query('skip') skip: string = '0', @Query('take') take: string = '10',
         @Query() filters: FilterAllReceptionDto
         ): Promise<Result<ReceptionsWithItems[], Error>> {
-
             const skipNumber = Number(skip)
             const takeNumber = Number(take)
             const result = await this.getAllReceptionsUseCase.execute(store_id, skipNumber, takeNumber, filters)
