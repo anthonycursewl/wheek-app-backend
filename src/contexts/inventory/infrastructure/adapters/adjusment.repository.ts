@@ -1,7 +1,7 @@
 import { PrismaService } from "@/src/contexts/shared/persistance/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { AdjustmentRepository } from "../../domain/repos/adjustment.repository";
-import { Adjustment, AdjustmentWithDetails } from "../../domain/entities/adjustment.entity";
+import { Adjustment, AdjustmentWithDetails, AdjustmentWithStore } from "../../domain/entities/adjustment.entity";
 import { AdjustmentReason, Prisma } from "@prisma/client";
 
 @Injectable()
@@ -143,6 +143,84 @@ export class AdjustmentRepositoryAdapter implements AdjustmentRepository {
             reason: adjustment.reason as AdjustmentReason,
             user: {
                 name: adjustment.user.name
+            },
+            items: adjustment.items.map(item => ({
+                quantity: item.quantity,
+                product: {
+                    name: item.product.name,
+                    w_ficha: item.product.w_ficha ? {
+                        condition: item.product.w_ficha.condition,
+                        cost: Number(item.product.w_ficha.cost),
+                        benchmark: Number(item.product.w_ficha.benchmark),
+                        tax: Boolean(item.product.w_ficha.tax),
+                    } : {
+                        condition: '',
+                        cost: 0,
+                        benchmark: 0,
+                        tax: false,
+                    }
+                }
+            })),
+        }));
+    }
+
+    async getAllWithStore(store_id: string, startDate: Date, endDate: Date): Promise<AdjustmentWithStore[] | []> {
+        const adjustments = await this.prismaService.inventory_adjustments.findMany({
+            where: {
+                store_id,
+                adjustment_date: {
+                    gte: startDate,
+                    lte: endDate,
+                },
+            },
+            select: {
+                id: true,
+                notes: true,
+                store_id: true,
+                adjustment_date: true,
+                reason: true,
+                user: {
+                    select: {
+                        name: true,
+                    }
+                },
+                store: {
+                    select: {
+                        name: true,
+                    }
+                },
+                items: {
+                    select: {
+                        quantity: true,
+                        product: {
+                            select: {
+                                name: true,
+                                w_ficha: {
+                                    select: {
+                                        condition: true,
+                                        cost: true,
+                                        benchmark: true,
+                                        tax: true,
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        return adjustments.map(adjustment => ({
+            id: adjustment.id,
+            notes: adjustment.notes || '',
+            store_id: adjustment.store_id,
+            adjustment_date: adjustment.adjustment_date,
+            reason: adjustment.reason as AdjustmentReason,
+            user: {
+                name: adjustment.user.name
+            },
+            store: {
+                name: adjustment.store.name
             },
             items: adjustment.items.map(item => ({
                 quantity: item.quantity,

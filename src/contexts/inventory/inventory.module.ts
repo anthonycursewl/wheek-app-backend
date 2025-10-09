@@ -10,6 +10,11 @@ import { AdjustmentRepositoryAdapter } from "./infrastructure/adapters/adjusment
 import { AdjustmentController } from "./infrastructure/controllers/adjustment.controller";
 import { GetAllAdjustmentsUseCase } from "./application/get-all-adjustments.usecase";
 import { AdjustmentCriteriaBuilder } from "./builders/adjustment-criteria.builder";
+import { GenerateAdjusmentReportRangeUseCase } from "./application/generate-adjusment-report-range.usecase";
+import { STORE_REPOSITORY } from "../stores/domain/repos/store.repository";
+import { StoreRepositoryAdapter } from "../stores/infraestructure/adapters/store.repository";
+import { REPORT_REPOSITORY } from "../receptions/domain/repos/report.repositort";
+import { ReportRepositoryAdapter } from "../receptions/infrastructure/adapters/report.repository";
 
 @Module({
     controllers: [InventoryController, AdjustmentController],
@@ -24,10 +29,19 @@ import { AdjustmentCriteriaBuilder } from "./builders/adjustment-criteria.builde
             provide: ADJUSTMENT_REPOSITORY,
             useClass: AdjustmentRepositoryAdapter
         },
+        {
+            provide: STORE_REPOSITORY,
+            useClass: StoreRepositoryAdapter    
+        },
+        {
+            provide: REPORT_REPOSITORY,
+            useClass: ReportRepositoryAdapter    
+        },  
         GetAllInventoryUseCase,
         AdjustProductsUseCase,
         GetAllAdjustmentsUseCase,
-        AdjustmentCriteriaBuilder
+        AdjustmentCriteriaBuilder,
+        GenerateAdjusmentReportRangeUseCase
     ],
     exports: [INVENTORY_REPOSITORY, ADJUSTMENT_REPOSITORY]
 })

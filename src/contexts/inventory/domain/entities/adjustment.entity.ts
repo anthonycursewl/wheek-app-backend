@@ -39,3 +39,30 @@ export class AdjustmentWithDetails {
         }
     }[];
 }
+
+export class AdjustmentWithStore {
+    id: string;
+    notes?: string;
+    store_id: string;
+    adjustment_date: Date;
+    reason: string;
+    user: {
+        name: string;
+    }
+    store: {
+        name: string;
+    }
+    items: {
+        quantity: number;
+        product: {
+            name: string;
+            w_ficha: {
+                condition: string;
+                cost: number;
+                benchmark: number;
+                tax: boolean;
+            }
+        }
+    }[];
+}
+

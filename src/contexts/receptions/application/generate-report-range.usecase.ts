@@ -1,29 +1,37 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
+import { RECEPTION_REPOSITORY, ReceptionRepository } from "../domain/repos/reception.repository";
+import { REPORT_REPOSITORY, ReportRepository } from "../domain/repos/report.repositort";
 import { Result, failure, success } from "../../shared/ROP/result";
+import { STORE_REPOSITORY, StoreRepository } from "@/src/contexts/stores/domain/repos/store.repository";
 
 @Injectable()
 export class GenerateReportRangeUseCase {
-    constructor() {}
+    constructor(
+        @Inject(RECEPTION_REPOSITORY)
+        private readonly receptionRepository: ReceptionRepository,
+        @Inject(REPORT_REPOSITORY)
+        private readonly reportRepository: ReportRepository,
+        @Inject(STORE_REPOSITORY)
+        private readonly storeRepository: StoreRepository,
+    ) {}
 
-    async execute(store_id: string, start_date: string, end_date: string): Promise<Result<any, Error>> {
+    async execute(storeId: string, startDate: Date, endDate: Date): Promise<Result<Buffer, Error>> {
         try {
-            console.table([
-                { 
-                    'Campo': 'store_id', 
-                    'Valor': store_id 
-                },
-                { 
-                    'Campo': 'startDate_range', 
-                    'Valor': start_date 
-                },
-                { 
-                    'Campo': 'endDate_range', 
-                    'Valor': end_date 
-                }
-            ]);
-            return success({})
+            const store = await this.storeRepository.findById(storeId);
+            if (!store) {
+                return failure(new Error('Tienda no encontrada.'));
+            }
+
+            const oneYearInMilliseconds = 365 * 24 * 60 * 60 * 1000;
+            if (endDate.getTime() - startDate.getTime() > oneYearInMilliseconds) {
+                return failure(new Error('El rango de fechas no puede ser mayor a un año.'));
+            }
+
+            const receptions = await this.receptionRepository.getReceptionsByDateRange(storeId, startDate, endDate);
+            const report = await this.reportRepository.generateReportByDateRange(receptions, startDate, endDate, store.getName());
+            return success(report);
         } catch (error) {
-            return failure(error as Error)
+            return failure(error);
         }
     }
 }
