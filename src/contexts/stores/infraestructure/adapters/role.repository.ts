@@ -79,15 +79,21 @@ export class RoleRepositoryAdapter implements RoleRepository {
 
     async assignPermissions(role_id: string, permissions: { id: string }[]): Promise<RoleWithPermissions> {
         try {
-            const role = await this.prisma.$transaction(async (prisma) => {
-                await prisma.role_permission.createMany({
+            const role = await this.prisma.$transaction(async (tx) => {
+                await tx.role_permission.deleteMany({
+                    where: {
+                        role_id,
+                    }
+                })
+
+                await tx.role_permission.createMany({
                     data: permissions.map((p) => ({
                         role_id,
                         permission_id: p.id,
                     }))
                 })
 
-                const role = await prisma.roles.findUnique({
+                const role = await tx.roles.findUnique({
                     where: {
                         id: role_id,
                     },

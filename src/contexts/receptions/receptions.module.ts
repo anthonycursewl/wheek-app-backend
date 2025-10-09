@@ -10,6 +10,7 @@ import { DeleteReceptionUseCase } from "./application/delete-reception.usecase";
 import { REPORT_REPOSITORY } from "./domain/repos/report.repositort";
 import { ReportRepositoryAdapter } from "./infrastructure/adapters/report.repository";
 import { GenerateReceptionReportUseCase } from "./application/generate-report.usecase";
+import { GenerateReportRangeUseCase } from "./application/generate-report-range.usecase";
 
 @Module({
     imports: [],
@@ -31,7 +32,8 @@ import { GenerateReceptionReportUseCase } from "./application/generate-report.us
         GetAllReceptionsUseCase,
         ReceptionCriteriaBuilder,
         DeleteReceptionUseCase,
-        GenerateReceptionReportUseCase
+        GenerateReceptionReportUseCase,
+        GenerateReportRangeUseCase
     ]
 })
 export class ReceptionsModule {}

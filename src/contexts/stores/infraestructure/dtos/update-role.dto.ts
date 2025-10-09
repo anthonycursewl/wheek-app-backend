@@ -22,7 +22,7 @@ export class UpdateRoleDto {
     @IsOptional()
     @IsArray({ message: 'Wheek | Los permisos deben ser un array.' })
     @IsString({ each: true, message: 'Wheek | Los permisos deben ser cadenas de texto.' })
-    @MaxLength(20, { each: true, message: 'Wheek | Cada permiso debe tener como máximo 20 caracteres.' })
+    @MaxLength(100, { each: true, message: 'Wheek | Cada permiso debe tener como máximo 100 caracteres.' })
     @MinLength(1, { each: true, message: 'Wheek | Cada permiso debe tener al menos 1 caracter.' })
     permissions?: string[];
 }

@@ -64,6 +64,11 @@ class RegisterDto {
   @IsString({ message: 'El nombre de usuario debe ser un texto' })
   @IsNotEmpty({ message: 'El nombre de usuario es requerido' })
   username: string;
+
+  @ApiProperty({ example: 'http://example.com/icon.png', required: false })
+  @IsOptional()
+  @IsString({ message: 'La URL del icono debe ser un texto' })
+  icon_url?: string;
 }
 
 class VerifyDto {
@@ -192,4 +197,4 @@ export class AuthController {
     
     return result.value;
   }
-} 
+}

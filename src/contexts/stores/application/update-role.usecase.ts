@@ -34,12 +34,12 @@ export class UpdateRoleUseCase {
                 ...(data.description !== undefined && { description: data.description }),
                 ...(data.store_id !== undefined && { store_id: data.store_id }),
                 ...(data.is_active !== undefined && { is_active: data.is_active }),
-                updated_at: new Date(), // Set updated_at when any field is updated
+                updated_at: new Date(),
             };
 
             if (permissions !== undefined) {
                 const permissionsIds = await this.permissionRepository.getAllPermissionsIds(permissions);
-                await this.roleRepository.assignPermissions(id, permissionsIds); // Use roleRepository for assignPermissions
+                await this.roleRepository.assignPermissions(id, permissionsIds);
             }
 
             const roleUpdated = await this.roleRepository.update(id, data.store_id, Role.fromPrimitive(updatedRolePrimitive));

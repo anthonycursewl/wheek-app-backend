@@ -1,4 +1,4 @@
-import { NotFoundException, UnauthorizedException, ForbiddenException, BadRequestException, InternalServerErrorException } from '@nestjs/common'
+import { NotFoundException, UnauthorizedException, ForbiddenException, BadRequestException, InternalServerErrorException, HttpException } from '@nestjs/common'
 import {
   Catch,
   ExceptionFilter,
@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 
 import { FastifyRequest as Request, FastifyReply as Response } from 'fastify';
-import { measureMemory } from 'vm';
 
 const errorCodes = {    
     [NotFoundException.name]: 404,
@@ -26,21 +25,32 @@ export class DefaultExceptionsFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
 
     let status: HttpStatus;
-    let message: string | object;
+    let message: string | string[] | object; // Allow message to be a string or array of strings
     let errorName: string;
 
-    status = errorCodes[exception.name];
-    message = exception.message;
-    errorName = exception.name;
-
-    if (!status) {
-      status = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = 'Internal server error';
+    if (exception instanceof HttpException) {
+      status = exception.getStatus();
+      const response = exception.getResponse();
+      if (typeof response === 'object' && response !== null && 'message' in response) {
+        message = (response as any).message; // Extract detailed message from HttpException response
+      } else {
+        message = exception.message;
+      }
       errorName = exception.name;
-      Logger.error(exception);
+    } else {
+      status = errorCodes[exception.name];
+      message = exception.message;
+      errorName = exception.name;
+
+      if (!status) {
+        status = HttpStatus.INTERNAL_SERVER_ERROR;
+        message = 'Internal server error';
+        errorName = exception.name;
+        Logger.error(exception);
+      }
     }
 
-    if (message.includes('prisma') && request.url.includes('stores')) {
+    if (typeof message === 'string' && message.includes('prisma') && request.url.includes('stores')) {
       message = 'Wheek | Ha ocurrido un error. Verifica la información enviada. Asegurate que el store_id sea correcto.';
     }
 

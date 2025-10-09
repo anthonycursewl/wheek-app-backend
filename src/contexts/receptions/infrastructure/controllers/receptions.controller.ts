@@ -9,6 +9,7 @@ import { FilterAllReceptionDto } from "../dtos/filter-receptions.dto";
 import { DeleteReceptionUseCase } from "../../application/delete-reception.usecase";
 import { GenerateReceptionReportUseCase } from "../../application/generate-report.usecase";
 import { PdfResponseInterceptor } from "../interceptors/pdf-response.interceptor";
+import { GenerateReportRangeUseCase } from "../../application/generate-report-range.usecase";
 
 @Controller('receptions') 
 export class ReceptionsController {
@@ -16,11 +17,12 @@ export class ReceptionsController {
         private readonly createReceptionUseCase: CreateReceptionUseCase,
         private readonly getAllReceptionsUseCase: GetAllReceptionsUseCase,
         private readonly deleteReceptionUseCase: DeleteReceptionUseCase,
-        private readonly generateReceptionReportUseCase: GenerateReceptionReportUseCase  
+        private readonly generateReceptionReportUseCase: GenerateReceptionReportUseCase,
+        private readonly generateReportRangeUseCase: GenerateReportRangeUseCase  
     ) {}
 
     @Post('create')
-    @Permissions('product:create')
+    @Permissions('reception:create')
     @UsePipes(new ValidationPipe({
         whitelist: false,
         forbidNonWhitelisted: true,
@@ -50,7 +52,7 @@ export class ReceptionsController {
     }
 
     @Get('get/all') 
-    @Permissions('product:read')
+    @Permissions('reception:read')
     @UsePipes(new ValidationPipe({
         whitelist: false,
         forbidNonWhitelisted: false,
@@ -101,6 +103,17 @@ export class ReceptionsController {
     async generateReport(@Param('id') id: string): Promise<Result<Buffer, Error>> {
         if (!id) throw new BadRequestException('El ID de la recepcion es requerido')
         const result = await this.generateReceptionReportUseCase.execute(id)
+        if (!result.isSuccess) throw new BadRequestException(result.error.message)
+        return result
+    }
+
+    @Get('report/range')
+    @Permissions('reception:report')
+    async generateReportRange(
+        @Query('store_id') store_id: string, 
+        @Query('startDate_range') start_date: string, 
+        @Query('endDate_range') end_date: string): Promise<Result<any, Error>> {
+        const result = await this.generateReportRangeUseCase.execute(store_id, start_date, end_date)
         if (!result.isSuccess) throw new BadRequestException(result.error.message)
         return result
     }
