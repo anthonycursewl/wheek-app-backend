@@ -46,6 +46,6 @@ import { SoftDeleteRoleUsecase } from "./application/soft-delete-role.usecase";
         UpdateRoleUseCase,
         SoftDeleteRoleUsecase
     ],
-    exports: [FindByIdUseCase],
+    exports: [FindByIdUseCase, STORE_REPOSITORY],
 })
 export class StoresModule {}

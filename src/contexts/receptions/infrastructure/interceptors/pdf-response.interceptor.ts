@@ -18,12 +18,11 @@ export class PdfResponseInterceptor implements NestInterceptor {
           response.header('Content-Type', 'application/pdf');
           response.header(
             'Content-Disposition',
-            `attachment; filename=report.pdf`
+            `attachment; filename="report.pdf"`
           );
           response.header('Content-Length', pdfBuffer.length);
           
-          response.send(pdfBuffer);
-          return; 
+          return pdfBuffer
         }
 
         return result;

@@ -384,4 +384,61 @@ export class ReceptionRepositoryAdapter implements ReceptionRepository {
             }))
         };
     }
+
+    async getReceptionsByDateRange(store_id: string, start_date: Date, end_date: Date): Promise<ReceptionWithStore[] | []> {
+        const receptions = await this.prisma.receptions.findMany({
+            where: {
+                store_id,
+                reception_date: {
+                    gte: start_date,
+                    lte: end_date
+                }
+            },
+            select: {
+                id: true,
+                notes: true,
+                is_active: true,
+                items: {
+                    select: {
+                        quantity: true,
+                        cost_price: true,
+                        product: {
+                            select: {
+                                name: true
+                            }
+                        }
+                    }
+                },
+                reception_date: true,
+                status: true,
+                user: {
+                    select: {
+                        name: true
+                    }
+                },
+                store: {
+                    select: {
+                        name: true
+                    }
+                },
+                provider: {
+                    select: {
+                        name: true
+                    }
+                }
+            }
+        });
+
+        if (!receptions) {
+            throw new Error(`Recepciones con ID ${store_id} y en el rango de fechas ${start_date} - ${end_date} no encontradas. Intenta de nuevo.`);
+        }
+
+        return receptions.map(reception => ({
+            ...reception,
+            items: reception.items.map(item => ({
+                ...item,
+                cost_price: Number(item.cost_price) 
+            }))
+        }));
+    }
 }

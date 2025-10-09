@@ -50,6 +50,7 @@ export interface ReceptionRepository {
     delete(id: string, isSoftDelete: boolean): Promise<ReceptionsWithItems>;
     getAll(store_id: string, skip: number, take: number, filters: any): Promise<ReceptionsWithItems[]>;
     getReceptionById(id: string): Promise<ReceptionWithStore>;
+    getReceptionsByDateRange(store_id: string, start_date: Date, end_date: Date): Promise<ReceptionWithStore[] | []>;
 }
 
 export const RECEPTION_REPOSITORY = Symbol('ReceptionRepository');

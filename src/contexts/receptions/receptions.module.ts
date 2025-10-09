@@ -11,9 +11,10 @@ import { REPORT_REPOSITORY } from "./domain/repos/report.repositort";
 import { ReportRepositoryAdapter } from "./infrastructure/adapters/report.repository";
 import { GenerateReceptionReportUseCase } from "./application/generate-report.usecase";
 import { GenerateReportRangeUseCase } from "./application/generate-report-range.usecase";
+import { StoresModule } from "../stores/stores.module"; 
 
 @Module({
-    imports: [],
+    imports: [StoresModule], 
     controllers: [ReceptionsController],
     providers: [
         {
