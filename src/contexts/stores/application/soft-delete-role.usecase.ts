@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ROLE_REPOSITORY, RoleRepository } from 'src/contexts/stores/domain/repos/role.repository';
 import { Result, success, failure } from 'src/contexts/shared/ROP/result';
-import { Role, RolePrimitive } from 'src/contexts/users/domain/entitys/role.entity';
+import { Role } from 'src/contexts/users/domain/entitys/role.entity';
 import { RoleWithPermissions } from 'src/contexts/stores/domain/repos/role.repository';
 
 @Injectable()
