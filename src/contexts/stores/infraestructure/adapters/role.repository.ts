@@ -179,8 +179,8 @@ export class RoleRepositoryAdapter implements RoleRepository {
             const rolePrimitive = role.toPrimitive()
            const updated = await this.prisma.roles.update({
             where: {
-                id,
-                store_id,
+                id: id,
+                store_id: store_id,
             },
             data: {
                 name: rolePrimitive.name,

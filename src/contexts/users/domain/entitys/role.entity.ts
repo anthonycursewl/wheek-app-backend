@@ -43,20 +43,24 @@ export class Role {
             new Date(),
             data.description || '',
             undefined,
-            undefined,
+            undefined   ,
             true
         );
     }
 
-    static update(data: Omit<RolePrimitive, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'permissions'>) {
+    static update(data: RolePrimitive) {
         return new Role(
-            data.name.trim(),
+            data.id,
+            data.name,
             data.store_id,
-            '',
-            new Date(),
-            '',
-            new Date(),
-            new Date(),
+            data.created_at,
+            data.description,
+            data.updated_at,
+            data.deleted_at,
+            data.is_active,
+            data.store,
+            data.permissions ? data.permissions.map(p => RolePermission.fromPrimitives(p)) : undefined,
+            data.user_roles
         )
     }
 

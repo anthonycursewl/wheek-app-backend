@@ -15,17 +15,20 @@ export class SoftDeleteRoleUsecase {
     id: string,
     storeId: string,
   ): Promise<Result<RoleWithPermissions, NotFoundException>> {
-    const rolePrimitive = await this.roleRepository.findById(id, storeId);
-
-    if (!rolePrimitive) {
-      return failure(new NotFoundException(`Role with ID ${id} not found`));
+    try {
+      const rolePrimitive = await this.roleRepository.findById(id, storeId);
+  
+      if (!rolePrimitive) {
+        return failure(new NotFoundException(`Role with ID ${id} not found`));
+      }
+  
+      const updatedRolePrimitive = { ...rolePrimitive, is_active: rolePrimitive.is_active ? false : true };
+      const roleToUpdate = Role.update(updatedRolePrimitive);
+  
+      const updatedRole = await this.roleRepository.update(id, storeId, roleToUpdate);
+      return success(updatedRole);
+    } catch (error) {
+      return failure(error);
     }
-
-    const updatedRolePrimitive = { ...rolePrimitive, is_active: !rolePrimitive.is_active };
-    const roleToUpdate = Role.update(updatedRolePrimitive);
-
-    const updatedRole = await this.roleRepository.update(id, storeId, roleToUpdate);
-
-    return success(updatedRole);
   }
 }
