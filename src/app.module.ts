@@ -10,12 +10,14 @@ import { InventoryModule } from './contexts/inventory/inventory.module';
 import { MemberModule } from './contexts/members/member.module';
 import { EmailModule } from './contexts/shared/infrastructure/email/email.module';
 import { NotificationModule } from './contexts/members/notification.module';
+import { AuditModule } from './shared/audit/audit.module';
 
 @Module({
   imports: [
     // Core modules
     PrismaModule,
     RbacModule,
+    AuditModule,
     
     // Feature modules
     AuthModule, 

@@ -50,7 +50,7 @@ export class RoleRepositoryAdapter implements RoleRepository {
                     id: true,
                     name: true,
                     is_active: true,
-                    description: true,
+                    description: true, 
                     created_at: true,
                     permissions: {
                         select: {

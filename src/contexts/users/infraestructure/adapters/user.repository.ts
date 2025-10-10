@@ -1,15 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { UserRepository } from '@users/domain/repos/user.repository';
-import { User, UserPrimitive } from '@users/domain/entitys/user.entity';
+import { User } from '@users/domain/entitys/user.entity';
 import { Transaction } from '@/src/contexts/shared/persistance/transactions';
-import { PrismaService } from '@shared/persistance/prisma.service';
-import { PrismaClient, users } from '@prisma/client';
+import { PrismaService } from '@/src/shared/persistance/prisma.service';
+import { users } from '@prisma/client';
 
 @Injectable()
 export class UserRepositoryAdapter implements UserRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService)
+    private readonly prisma: PrismaService,
+  ) {}
 
-  private mapPrismaUserToDomain(user: users): User {
+  private mapPrismaUserToDomain(user: users): User { 
     return User.fromPrimitives({
       ...user,
       updated_at: user.updated_at ?? undefined,
@@ -19,7 +22,7 @@ export class UserRepositoryAdapter implements UserRepository {
   }
 
   async create(user: User, tx?: Transaction): Promise<User> {
-    const client = tx as PrismaClient || this.prisma;
+    const client = tx || this.prisma; 
     try {
       const created = await client.users.create({ data: { id: user.idValue, name: user.nameValue, last_name: user.lastNameValue, username: user.usernameValue, email: user.emailValue, password: user.passwordValue, created_at: user.createdAtValue, is_active: user.isActiveValue, icon_url: user.iconUrlValue, }, });
       return (await this.findById(created.id, tx))!;
@@ -29,21 +32,21 @@ export class UserRepositoryAdapter implements UserRepository {
   }
 
   async findById(id: string, tx?: Transaction): Promise<User | null> {
-    const client = tx as PrismaClient || this.prisma;
+    const client = tx || this.prisma;
     try {
       const found = await client.users.findUnique({
         where: { id },
       });
 
       if (!found) return null;
-      return this.mapPrismaUserToDomain(found);
+      return this.mapPrismaUserToDomain(found); 
     } catch (error) {
       throw error;
     }
   }
 
   async findByEmail(email: string, tx?: Transaction): Promise<User | null> {
-    const client = tx as PrismaClient || this.prisma;
+    const client = tx || this.prisma; 
     try {
       const found = await client.users.findFirst({
         where: { email: email },
@@ -57,7 +60,7 @@ export class UserRepositoryAdapter implements UserRepository {
   }
 
   async findByUsername(username: string, tx?: Transaction): Promise<boolean | null> {
-    const client = tx as PrismaClient || this.prisma;
+    const client = tx || this.prisma;
     try {
       const found = await client.users.findUnique({
         where: { username: username },
@@ -72,7 +75,7 @@ export class UserRepositoryAdapter implements UserRepository {
   }
 
   async update(user: User, tx?: Transaction): Promise<User> {
-    const client = tx as PrismaClient || this.prisma;
+    const client = tx || this.prisma;
     try {
       await client.users.update({ where: { id: user.idValue }, data: { name: user.nameValue, last_name: user.lastNameValue, email: user.emailValue, password: user.passwordValue, is_active: user.isActiveValue, icon_url: user.iconUrlValue, updated_at: user.updatedAtValue, }, });
       return (await this.findById(user.idValue, tx))!;
@@ -80,4 +83,4 @@ export class UserRepositoryAdapter implements UserRepository {
       throw error;
     }
   }
-} 
+}

@@ -1,6 +1,6 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common"; 
 import { ProductRepository } from "../../domain/repos/product.repository";
-import { PrismaService } from "@/src/contexts/shared/persistance/prisma.service";
+import { PrismaService } from "@/src/contexts/shared/persistance/prisma.service"
 import { Product, ProductPrimitive, ProductSearchResult } from "../../domain/entities/product.entity";
 import { Prisma } from "@prisma/client";
 import { Criteria } from "../../application/products/get-all-products.usecase";
@@ -11,13 +11,15 @@ type ProductWithFicha = Prisma.productsGetPayload<{
 
 @Injectable()
 export class ProductRepositoryAdapter implements ProductRepository {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+    ) {}
 
     async create(product: Product): Promise<Product> {
         const { w_ficha, ...productData } = product.toPrimitive();
 
-        return this.prisma.$transaction(async (prisma) => {
-            const createdProduct = await prisma.products.create({
+        return this.prisma.$transaction(async (tx) => {
+            const createdProduct = await tx.products.create({
                 data: {
                     ...productData,
                     w_ficha: {

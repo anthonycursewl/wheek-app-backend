@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 import { StoreController } from "./infraestructure/controllers/store.controller";
 import { StoreRepositoryAdapter } from "./infraestructure/adapters/store.repository";
-import { PrismaService } from "@shared/persistance/prisma.service";
+// Removed import { PrismaService } from "@shared/persistance/prisma.service";
 import { STORE_REPOSITORY } from "./domain/repos/store.repository";
 import { CreateStoreUseCase } from "./application/create-store.usecase";
 import { UpdateStoreUseCase } from "./application/update-store.usecase";
@@ -22,7 +22,7 @@ import { SoftDeleteRoleUsecase } from "./application/soft-delete-role.usecase";
     imports: [],
     controllers: [StoreController],
     providers: [
-        PrismaService,
+        // Removed PrismaService, as it's provided globally by PrismaModule
         {
             provide: STORE_REPOSITORY,
             useClass: StoreRepositoryAdapter,

@@ -1,13 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
-type PrismaModel = {
-  findMany: (args?: any) => Promise<any[]>;
-  findFirst: (args?: any) => Promise<any>;
-  findUnique: (args: any) => Promise<any>;
-  findUniqueOrThrow: (args: any) => Promise<any>;
-};
-
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
   constructor() {
@@ -19,7 +12,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
   async onModuleInit() {
     await this.$connect();
   }
-  
+
   getClient() {
     return this.$extends({
       query: {
@@ -73,7 +66,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     });
   }
 
-  withSoftDelete<T extends PrismaModel>(model: T) {
+  withSoftDelete<T extends { findMany: any; findFirst: any; }>(model: T) {
     return {
       ...model,
       findManyWithDeleted: (args: any = {}) => model.findMany({
@@ -91,5 +84,3 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     };
   }
 }
-
-export const prisma = new PrismaService();

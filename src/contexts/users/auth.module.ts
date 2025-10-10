@@ -9,7 +9,6 @@ import { LocalStrategy } from '@users/strategies/local.strategy';
 import { LoginUseCase } from '@users/application/login.usecase';
 import { RegisterUseCase } from '@users/application/register.usecase';
 import { VerifyUseCase } from '@users/application/verify.usecase';
-import { PrismaService } from '@shared/persistance/prisma.service';
 import { UserRepositoryAdapter } from '@users/infraestructure/adapters/user.repository';
 
 @Module({
@@ -32,8 +31,7 @@ import { UserRepositoryAdapter } from '@users/infraestructure/adapters/user.repo
     VerifyUseCase,
     JwtStrategy,
     LocalStrategy,
-    PrismaService,
   ],
   exports: [JwtStrategy, PassportModule, JwtModule],
 })
-export class AuthModule {} 
+export class AuthModule {}

@@ -1,14 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common'; // Added Inject
 import { Transaction } from '@/src/contexts/shared/persistance/transactions';
-import { PrismaService } from '@shared/persistance/prisma.service';
-import { PrismaClient } from '@prisma/client';
+import { PrismaService } from '@/src/shared/persistance/prisma.service';
 import { StoreRepository } from '../../domain/repos/store.repository';
 import { Store } from '../../domain/entities/store.entity';
 import { StoreData } from '../../domain/entities/store.entity';
 
 @Injectable()
 export class StoreRepositoryAdapter implements StoreRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService)
+    private readonly prisma: PrismaService,
+  ) {}
 
     private mapPrismaStoreToDomain(store: StoreData): Store {
         return Store.fromPrimitive({
@@ -22,7 +24,7 @@ export class StoreRepositoryAdapter implements StoreRepository {
     }
 
     async create(store: Store, tx?: Transaction): Promise<Store> {
-        const client = tx as PrismaClient || this.prisma;
+        const client = tx || this.prisma;   
         try {
             const created = await client.stores.create({
                 data: store.toPrimitive(),
@@ -35,7 +37,7 @@ export class StoreRepositoryAdapter implements StoreRepository {
     }
 
     async update(store: Store, tx?: Transaction): Promise<Store> {
-        const client = tx as PrismaClient || this.prisma;
+        const client = tx || this.prisma;   
         try {
             const updated = await client.stores.update({
                 where: {
@@ -51,7 +53,7 @@ export class StoreRepositoryAdapter implements StoreRepository {
     }
 
     async findById(id: string, tx?: Transaction): Promise<Store | null> {
-        const client = tx as PrismaClient || this.prisma;
+        const client = tx || this.prisma;   
         try {
             const store = await client.stores.findUnique({
                 where: {
@@ -70,7 +72,7 @@ export class StoreRepositoryAdapter implements StoreRepository {
     }
 
     async findAllById(id: string, tx?: Transaction): Promise<Store[]> {
-        const client = tx as PrismaClient || this.prisma;
+        const client = tx || this.prisma;   
         try {
             const stores = await client.stores.findMany({
                 where: {
@@ -105,4 +107,4 @@ export class StoreRepositoryAdapter implements StoreRepository {
         }
     }
 
-} 
+}

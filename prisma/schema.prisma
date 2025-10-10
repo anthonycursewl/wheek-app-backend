@@ -31,7 +31,7 @@ model stores {
   receptions            receptions[]
   inventory_adjustments inventory_adjustments[]
   sales                 sales[]
-
+  audit_logs            AuditLog[]
   @@index([owner])
 }
 
@@ -55,7 +55,7 @@ model users {
   receptions            receptions[]
   inventory_adjustments inventory_adjustments[]
   sales                 sales[]
-
+  audit_logs            AuditLog[]
   @@map("users")
 }
 
@@ -150,7 +150,6 @@ model invitations {
   @@index([role_id])
   @@index([invited_by_id])
 }
-
 
 /// * ========================================
 /// * BUSINESS LOGIC MODELS (Products, etc.)
@@ -376,10 +375,30 @@ model sale_items {
   @@map("sale_items")
 }
 
+model AuditLog {
+  id          String    @id @default(uuid()) @db.Uuid
+  store_id    String    @db.Uuid
+  user_id     String?   @db.VarChar(255) 
+  action_type String    @db.VarChar(50) 
+  entity      String    @db.VarChar(100) 
+  entity_id   String    @db.VarChar(255) 
+  details     String?   @db.Text         
+  changes     Json?     
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+
+  /// --- Relations ---
+  store stores @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  user  users? @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@index([store_id])
+  @@index([user_id])
+  @@index([entity, entity_id])
+  @@map("audit_logs")
+}
+
 /// * ========================================
 /// * ENUMS
 /// * ========================================
-
 enum InvitationStatus {
   PENDING
   ACCEPTED
