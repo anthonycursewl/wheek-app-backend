@@ -1,4 +1,4 @@
-import { Global, Module, forwardRef } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from '@shared/persistance/prisma.module';
@@ -26,4 +26,4 @@ import { RolesGuard } from '../guards/roles.guard';
   ],
   exports: [PrismaModule],
 })
-export class RbacModule {}
+export class RbacModule { }

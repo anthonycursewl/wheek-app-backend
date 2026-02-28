@@ -1,10 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
+  engineType = "client"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 /// * ========================================
@@ -32,6 +32,7 @@ model stores {
   inventory_adjustments inventory_adjustments[]
   sales                 sales[]
   audit_logs            AuditLog[]
+
   @@index([owner])
 }
 
@@ -56,6 +57,8 @@ model users {
   inventory_adjustments inventory_adjustments[]
   sales                 sales[]
   audit_logs            AuditLog[]
+  partnerLinkedUsers    partner_linked_users[]
+
   @@map("users")
 }
 
@@ -155,17 +158,17 @@ model invitations {
 /// * BUSINESS LOGIC MODELS (Products, etc.)
 /// * ========================================
 model products {
-  id                String    @id @db.VarChar(255)
-  barcode           String    @db.VarChar(255)
-  name              String    @db.VarChar(255)
-  store_id          String    @db.Uuid
-  provider_id       String    @db.VarChar(255)
-  category_id       String    @db.Uuid
+  id                  String    @id @db.VarChar(255)
+  barcode             String    @db.VarChar(255)
+  name                String    @db.VarChar(255)
+  store_id            String    @db.Uuid
+  provider_id         String    @db.VarChar(255)
+  category_id         String    @db.Uuid
   low_stock_threshold Int       @default(0)
-  is_active         Boolean   @default(true)
-  created_at        DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at        DateTime? @updatedAt @db.Timestamptz(6)
-  deleted_at        DateTime? @db.Timestamptz(6)
+  is_active           Boolean   @default(true)
+  created_at          DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime? @updatedAt @db.Timestamptz(6)
+  deleted_at          DateTime? @db.Timestamptz(6)
 
   /// --- Relations ---
   stores           stores             @relation(fields: [store_id], references: [id], onDelete: Cascade, map: "store_id")
@@ -267,9 +270,9 @@ model receptions {
   deleted_at     DateTime?       @db.Timestamptz(6)
 
   /// --- Relations (onDelete: Restrict prevents deleting a store/user with history) ---
-  store    stores          @relation(fields: [store_id], references: [id], onDelete: Restrict)
-  user     users           @relation(fields: [user_id], references: [id], onDelete: Restrict)
-  provider providers?      @relation(fields: [provider_id], references: [id], onDelete: SetNull)
+  store    stores            @relation(fields: [store_id], references: [id], onDelete: Restrict)
+  user     users             @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  provider providers?        @relation(fields: [provider_id], references: [id], onDelete: SetNull)
   items    reception_items[]
 
   @@index([store_id])
@@ -304,7 +307,6 @@ model inventory_adjustments {
   notes           String?
   created_at      DateTime         @default(now()) @db.Timestamptz(6)
   updated_at      DateTime         @updatedAt @db.Timestamptz(6)
-
 
   /// --- Relations (onDelete: Restrict prevents deleting a store/user with history) ---
   store stores             @relation(fields: [store_id], references: [id], onDelete: Restrict)
@@ -376,15 +378,15 @@ model sale_items {
 }
 
 model AuditLog {
-  id          String    @id @default(uuid()) @db.Uuid
-  store_id    String    @db.Uuid
-  user_id     String?   @db.VarChar(255) 
-  action_type String    @db.VarChar(50) 
-  entity      String    @db.VarChar(100) 
-  entity_id   String    @db.VarChar(255) 
-  details     String?   @db.Text         
-  changes     Json?     
-  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  id          String   @id @default(uuid()) @db.Uuid
+  store_id    String   @db.Uuid
+  user_id     String?  @db.VarChar(255)
+  action_type String   @db.VarChar(50)
+  entity      String   @db.VarChar(100)
+  entity_id   String   @db.VarChar(255)
+  details     String?  @db.Text
+  changes     Json?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
 
   /// --- Relations ---
   store stores @relation(fields: [store_id], references: [id], onDelete: Cascade)
@@ -394,6 +396,143 @@ model AuditLog {
   @@index([user_id])
   @@index([entity, entity_id])
   @@map("audit_logs")
+}
+
+/// * ========================================
+/// * OAUTH 2.0 MODELS
+/// * ========================================
+
+/// OAuth Client (e.g., Malet app)
+model oauth_clients {
+  id             String    @id @db.Uuid
+  client_id      String    @unique @db.VarChar(255)
+  client_secret  String    @db.VarChar(255)
+  name           String    @db.VarChar(255)
+  redirect_uris  String[]
+  allowed_scopes String[]
+  pkce_enabled   Boolean   @default(true)
+  is_active      Boolean   @default(true)
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime? @updatedAt @db.Timestamptz(6)
+  deleted_at     DateTime? @db.Timestamptz(6)
+
+  @@index([client_id])
+  @@map("oauth_clients")
+}
+
+/// OAuth Authorization Code (temporary, single-use)
+model oauth_authorization_codes {
+  id                    String   @id @db.Uuid
+  code                  String   @unique @db.VarChar(255)
+  client_id             String   @db.VarChar(255)
+  user_id               String   @db.VarChar(255)
+  redirect_uri          String   @db.Text
+  scopes                String[]
+  code_challenge        String?  @db.VarChar(255)
+  code_challenge_method String?  @db.VarChar(10)
+  state                 String?  @db.VarChar(255)
+  expires_at            DateTime @db.Timestamptz(6)
+  used                  Boolean  @default(false)
+  created_at            DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([code])
+  @@index([client_id])
+  @@index([user_id])
+  @@index([expires_at])
+  @@map("oauth_authorization_codes")
+}
+
+model oauth_tokens {
+  id                       String    @id @db.Uuid
+  access_token             String    @unique @db.VarChar(255)
+  refresh_token            String    @unique @db.VarChar(255)
+  client_id                String    @db.VarChar(255)
+  user_id                  String    @db.VarChar(255)
+  scopes                   String[]
+  access_token_expires_at  DateTime  @db.Timestamptz(6)
+  refresh_token_expires_at DateTime  @db.Timestamptz(6)
+  revoked                  Boolean   @default(false)
+  created_at               DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime? @updatedAt @db.Timestamptz(6)
+
+  @@index([access_token])
+  @@index([refresh_token])
+  @@index([client_id])
+  @@index([user_id])
+  @@map("oauth_tokens")
+}
+
+/// Partner API Keys for provisioning and linking
+model oauth_partners {
+  id          String    @id @db.Uuid
+  name        String    @unique @db.VarChar(255)
+  api_key     String    @unique @db.VarChar(255)
+  allowed_ips String[]
+  permissions String[]
+  rate_limit  Int       @default(100)
+  is_active   Boolean   @default(true)
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime? @updatedAt @db.Timestamptz(6)
+  deleted_at  DateTime? @db.Timestamptz(6)
+
+  /// Fields for linking with consent
+  can_link_users        Boolean  @default(false)
+  logo_url              String?  @db.VarChar(500)
+  description           String?  @db.Text
+  allowed_redirect_uris String[] @default([])
+  default_scopes        String[] @default([])
+  client_id             String?  @db.VarChar(255)
+
+  /// Relations
+  linked_users  partner_linked_users[]
+  link_sessions partner_link_sessions[]
+
+  @@index([api_key])
+  @@index([client_id])
+  @@map("oauth_partners")
+}
+
+/// Temporary session for the linking flow
+model partner_link_sessions {
+  id               String   @id @default(uuid()) @db.Uuid
+  partner_id       String   @db.Uuid
+  client_id        String   @db.VarChar(255)
+  redirect_uri     String   @db.Text
+  external_user_id String   @db.VarChar(255)
+  external_email   String?  @db.VarChar(255)
+  external_name    String?  @db.VarChar(255)
+  state            String   @db.VarChar(255)
+  expires_at       DateTime @db.Timestamptz(6)
+  created_at       DateTime @default(now()) @db.Timestamptz(6)
+
+  /// Relations
+  partner oauth_partners @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+
+  @@index([partner_id])
+  @@map("partner_link_sessions")
+}
+
+/// Users linked to partners (external users mapped to Wheek users)
+model partner_linked_users {
+  id               String  @id @default(uuid()) @db.Uuid
+  partner_id       String  @db.Uuid
+  external_user_id String  @db.VarChar(255)
+  wheek_user_id    String  @db.VarChar(255)
+  external_email   String? @db.VarChar(255)
+  external_name    String? @db.VarChar(255)
+
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime? @updatedAt @db.Timestamptz(6)
+  last_token_at DateTime? @db.Timestamptz(6)
+
+  /// Relations
+  partner oauth_partners @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+  user    users          @relation(fields: [wheek_user_id], references: [id], onDelete: Cascade)
+
+  @@unique([partner_id, external_user_id], name: "partner_external_user_unique")
+  @@index([partner_id])
+  @@index([wheek_user_id])
+  @@map("partner_linked_users")
 }
 
 /// * ========================================

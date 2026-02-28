@@ -13,7 +13,7 @@ export class RegisterUseCase {
     @Inject(USER_REPOSITORY)
     private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async execute(email: string, password: string, name: string, last_name: string, username: string, tx?: Transaction): Promise<Result<{ access_token: string, refresh_token: string }, Error>> {
     try {
@@ -30,19 +30,19 @@ export class RegisterUseCase {
       const user = await User.create({
         email,
         password,
-        name, 
+        name,
         last_name,
         username,
       });
 
       const createdUser = await this.userRepository.create(user, tx);
       const payload = {
-        email: createdUser.emailValue, 
+        email: createdUser.emailValue,
         sub: createdUser.idValue,
       };
 
-      const access_token = this.jwtService.sign(payload, { expiresIn: process.env.JWT_ACCESS_EXPIRATION, secret: process.env.JWT_ACCESS_SECRET });
-      const refresh_token = this.jwtService.sign(payload, { expiresIn: process.env.JWT_REFRESH_EXPIRATION, secret: process.env.JWT_REFRESH_SECRET });
+      const access_token = this.jwtService.sign(payload, { expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '15m') as any, secret: process.env.JWT_ACCESS_SECRET });
+      const refresh_token = this.jwtService.sign(payload, { expiresIn: (process.env.JWT_REFRESH_EXPIRATION || '7d') as any, secret: process.env.JWT_REFRESH_SECRET });
       return success({ access_token, refresh_token });
     } catch (error) {
       return failure(error);

@@ -23,7 +23,7 @@ export class ReportRepositoryAdapter implements ReportRepository {
                 italic: path.join(process.cwd(), 'dist', 'fonts', 'Onest-SemiBold.ttf'),
             }
         };
-        
+
         this.printer = new PdfPrinter(fonts);
     }
 
@@ -50,7 +50,7 @@ export class ReportRepositoryAdapter implements ReportRepository {
             }),
         ];
 
-        const docDefinition: TDocumentDefinitions = {
+        const docDefinition: any = {
             pageSize: 'A4',
             pageMargins: [40, 80, 40, 60],
             header: {
@@ -103,17 +103,16 @@ export class ReportRepositoryAdapter implements ReportRepository {
                                     fillColor: data.status === 'COMPLETED' ? '#22c55e' : '#ef4444',
                                     color: 'white',
                                     bold: true,
-                                    alignment: 'center',
-                                    borderRadius: 4,
-                                    border: [false, false, false, false]
+                                    alignment: 'center' as const,
+                                    border: [false, false, false, false] as [boolean, boolean, boolean, boolean]
                                 }
                             ]
                         ]
                     },
                     layout: 'noBorders',
-                    margin: [200, 10, 200, 20]
+                    margin: [200, 10, 200, 20] as [number, number, number, number]
                 },
-                
+
                 {
                     table: {
                         headerRows: 1,
@@ -143,7 +142,7 @@ export class ReportRepositoryAdapter implements ReportRepository {
                     layout: 'noBorders',
                     margin: [0, 10, 0, 20]
                 },
-                
+
                 {
                     canvas: [{ type: 'line', x1: 0, y1: 5, x2: 515, y2: 5, lineWidth: 1, lineColor: '#cccccc' }]
                 },
@@ -188,171 +187,170 @@ export class ReportRepositoryAdapter implements ReportRepository {
 
     async generateReportByDateRange(receptions: ReceptionWithStore[], startDate: Date, endDate: Date, storeName: string): Promise<Buffer> {
         let totalReceptionsCost = 0;
-        const content: TDocumentDefinitions['content'] = [];
+        const content: any[] = [];
 
         receptions.forEach((reception, index) => {
             let receptionTotalCost = 0;
             const itemsTableBody = [
-            [
-                { text: 'Producto', style: 'tableHeader' },
-                { text: 'Cantidad', style: 'tableHeader', alignment: 'center' },
-                { text: 'Costo Unitario', style: 'tableHeader', alignment: 'right' },
-                { text: 'Subtotal', style: 'tableHeader', alignment: 'right' },
-            ],
-            ...reception.items.map(item => {
-                const costPrice = Number(item.cost_price);
-                const subtotal = item.quantity * costPrice;
-                receptionTotalCost += subtotal;
-                return [
-                    item.product.name,
-                    { text: item.quantity.toString(), alignment: 'center' },
-                    { text: formatCurrency(costPrice), alignment: 'right' },
-                    { text: formatCurrency(subtotal), alignment: 'right' },
-                ];
-            }),
-            [
-                { text: 'Total Recepción', colSpan: 3, alignment: 'right', bold: true, style: 'tableHeader' },
-                {},
-                {},
-                { text: formatCurrency(receptionTotalCost), alignment: 'right', bold: true },
-            ]
-        ];
-        totalReceptionsCost += receptionTotalCost;
+                [
+                    { text: 'Producto', style: 'tableHeader' },
+                    { text: 'Cantidad', style: 'tableHeader', alignment: 'center' },
+                    { text: 'Costo Unitario', style: 'tableHeader', alignment: 'right' },
+                    { text: 'Subtotal', style: 'tableHeader', alignment: 'right' },
+                ],
+                ...reception.items.map(item => {
+                    const costPrice = Number(item.cost_price);
+                    const subtotal = item.quantity * costPrice;
+                    receptionTotalCost += subtotal;
+                    return [
+                        item.product.name,
+                        { text: item.quantity.toString(), alignment: 'center' },
+                        { text: formatCurrency(costPrice), alignment: 'right' },
+                        { text: formatCurrency(subtotal), alignment: 'right' },
+                    ];
+                }),
+                [
+                    { text: 'Total Recepción', colSpan: 3, alignment: 'right', bold: true, style: 'tableHeader' },
+                    {},
+                    {},
+                    { text: formatCurrency(receptionTotalCost), alignment: 'right', bold: true },
+                ]
+            ];
+            totalReceptionsCost += receptionTotalCost;
 
-        if (index > 0) {
+            if (index > 0) {
+                content.push({ text: '', pageBreak: 'before' });
+            }
+
+            content.push({
+                stack: [
+                    {
+                        columns: [
+                            {
+                                width: '50%',
+                                text: [
+                                    { text: 'Recepción ID: ', bold: true },
+                                    `${reception.id}\n`,
+                                    { text: 'Fecha: ', bold: true },
+                                    `${new Date(reception.reception_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}\n`,
+                                ],
+                            },
+                            {
+                                width: '50%',
+                                text: [
+                                    { text: 'Proveedor: ', bold: true },
+                                    `${reception.provider?.name || 'N/A'}\n`,
+                                    { text: 'Registrado por: ', bold: true },
+                                    `${reception.user.name}\n`,
+                                ],
+                            },
+                        ],
+                        style: 'infoBlock',
+                        margin: [0, 10, 0, 5]
+                    },
+                    {
+                        table: {
+                            body: [
+                                [
+                                    {
+                                        text: `Estado: ${reception.status}`,
+                                        fillColor: reception.status === 'COMPLETED' ? '#22c55e' : '#ef4444',
+                                        color: 'white',
+                                        bold: true,
+                                        alignment: 'center' as const,
+                                        border: [false, false, false, false] as [boolean, boolean, boolean, boolean]
+                                    }
+                                ]
+                            ]
+                        },
+                        layout: 'noBorders',
+                        margin: [200, 0, 200, 10] as [number, number, number, number]
+                    },
+                    {
+                        table: {
+                            headerRows: 1,
+                            widths: ['*', 'auto', 'auto', 'auto'],
+                            body: itemsTableBody,
+                        },
+                        layout: {
+                            fillColor: function (rowIndex, node, columnIndex) {
+                                return (rowIndex % 2 === 0) ? '#F3F4F6' : null;
+                            },
+                            hLineWidth: () => 0,
+                            vLineWidth: () => 0,
+                        },
+                        style: 'itemsTable'
+                    }
+                ]
+            });
+        });
+
+        if (receptions.length > 0) {
             content.push({ text: '', pageBreak: 'before' });
+
+            content.push({
+                stack: [
+                    { text: 'Resumen General del Reporte', style: 'header', alignment: 'center', margin: [0, 20, 0, 40] },
+                    {
+                        table: {
+                            headerRows: 0,
+                            widths: ['*', 'auto'],
+                            body: [
+                                [
+                                    { text: 'Costo Total de Todas las Recepciones', style: 'totalLabel', alignment: 'right' },
+                                    { text: formatCurrency(totalReceptionsCost), style: 'totalValue', alignment: 'right' },
+                                ]
+                            ]
+                        },
+                        layout: 'noBorders',
+                        margin: [0, 30, 0, 20]
+                    },
+                    {
+                        text: `Total de recepciones procesadas en el periodo: ${receptions.length}`,
+                        alignment: 'center',
+                        style: 'infoBlock',
+                        margin: [0, 20, 0, 0]
+                    }
+                ]
+            });
         }
 
-        content.push({
-            stack: [
-                {
-                    columns: [
-                        {
-                            width: '50%',
-                            text: [
-                                { text: 'Recepción ID: ', bold: true },
-                                `${reception.id}\n`,
-                                { text: 'Fecha: ', bold: true },
-                                `${new Date(reception.reception_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}\n`,
-                            ],
-                        },
-                        {
-                            width: '50%',
-                            text: [
-                                { text: 'Proveedor: ', bold: true },
-                                `${reception.provider?.name || 'N/A'}\n`,
-                                { text: 'Registrado por: ', bold: true },
-                                `${reception.user.name}\n`,
-                            ],
-                        },
-                    ],
-                    style: 'infoBlock',
-                    margin: [0, 10, 0, 5]
-                },
-                {
-                    table: {
-                        body: [
-                            [
-                                {
-                                    text: `Estado: ${reception.status}`,
-                                    fillColor: reception.status === 'COMPLETED' ? '#22c55e' : '#ef4444',
-                                    color: 'white',
-                                    bold: true,
-                                    alignment: 'center',
-                                    borderRadius: 4,
-                                    border: [false, false, false, false]
-                                }
-                            ]
-                        ]
-                    },
-                    layout: 'noBorders',
-                    margin: [200, 0, 200, 10]
-                },
-                {
-                    table: {
-                        headerRows: 1,
-                        widths: ['*', 'auto', 'auto', 'auto'],
-                        body: itemsTableBody,
-                    },
-                    layout: {
-                        fillColor: function (rowIndex, node, columnIndex) {
-                            return (rowIndex % 2 === 0) ? '#F3F4F6' : null;
-                        },
-                        hLineWidth: () => 0,
-                        vLineWidth: () => 0,
-                    },
-                    style: 'itemsTable'
-                }
-            ]
-        });
-    });
 
-    if (receptions.length > 0) {
-        content.push({ text: '', pageBreak: 'before' });
+        const docDefinition: any = {
+            pageSize: 'A4',
+            pageMargins: [40, 80, 40, 60],
+            header: {
+                stack: [
+                    { text: storeName, style: 'header', alignment: 'center' },
+                    { text: 'Reporte de Recepciones por Rango de Fechas', style: 'documentTitle', alignment: 'center' },
+                    { text: `Desde: ${startDate.toLocaleDateString('es-ES')} - Hasta: ${endDate.toLocaleDateString('es-ES')}`, style: 'documentTitle', alignment: 'center' },
+                ],
+                margin: [40, 30, 40, 10]
+            },
+            defaultStyle: {
+                font: 'Onest'
+            },
+            footer: (currentPage, pageCount) => ({
+                text: `Página ${currentPage.toString()} de ${pageCount}`,
+                alignment: 'center',
+                style: 'footer',
+            }),
 
-        content.push({
-            stack: [
-                { text: 'Resumen General del Reporte', style: 'header', alignment: 'center', margin: [0, 20, 0, 40] },
-                {
-                    table: {
-                        headerRows: 0,
-                        widths: ['*', 'auto'],
-                        body: [
-                            [
-                                { text: 'Costo Total de Todas las Recepciones', style: 'totalLabel', alignment: 'right' },
-                                { text: formatCurrency(totalReceptionsCost), style: 'totalValue', alignment: 'right' },
-                            ]
-                        ]
-                    },
-                    layout: 'noBorders',
-                    margin: [0, 30, 0, 20]
-                },
-                {
-                    text: `Total de recepciones procesadas en el periodo: ${receptions.length}`,
-                    alignment: 'center',
-                    style: 'infoBlock',
-                    margin: [0, 20, 0, 0]
-                }
-            ]
-        });
-    }
+            content: content,
 
-
-    const docDefinition: TDocumentDefinitions = {
-        pageSize: 'A4',
-        pageMargins: [40, 80, 40, 60],
-        header: {
-            stack: [
-                { text: storeName, style: 'header', alignment: 'center' },
-                { text: 'Reporte de Recepciones por Rango de Fechas', style: 'documentTitle', alignment: 'center' },
-                { text: `Desde: ${startDate.toLocaleDateString('es-ES')} - Hasta: ${endDate.toLocaleDateString('es-ES')}`, style: 'documentTitle', alignment: 'center' },
-            ],
-            margin: [40, 30, 40, 10]
-        },
-        defaultStyle: {
-            font: 'Onest'
-        },
-        footer: (currentPage, pageCount) => ({
-            text: `Página ${currentPage.toString()} de ${pageCount}`,
-            alignment: 'center',
-            style: 'footer',
-        }),
-
-        content: content,
-
-        styles: {
-            header: { fontSize: 24, bold: true, color: '#111827' },
-            documentTitle: { fontSize: 12, color: '#6B7280' },
-            infoBlock: { fontSize: 10, margin: [0, 0, 0, 10] },
-            subheader: { fontSize: 14, bold: true, color: '#374151' },
-            itemsTable: { margin: [0, 5, 0, 15], fontSize: 10 },
-            tableHeader: { bold: true, fontSize: 11, color: '#1F2937', margin: [0, 5, 0, 5] },
-            totalLabel: { fontSize: 14, bold: true, color: '#1F2937' },
-            totalValue: { fontSize: 14, bold: true, color: '#1F2937' },
-            notesText: { font: 'Onest', color: '#4B5563', fontSize: 10 },
-            footer: { fontSize: 8, color: 'grey' }
-        },
-    };
+            styles: {
+                header: { fontSize: 24, bold: true, color: '#111827' },
+                documentTitle: { fontSize: 12, color: '#6B7280' },
+                infoBlock: { fontSize: 10, margin: [0, 0, 0, 10] },
+                subheader: { fontSize: 14, bold: true, color: '#374151' },
+                itemsTable: { margin: [0, 5, 0, 15], fontSize: 10 },
+                tableHeader: { bold: true, fontSize: 11, color: '#1F2937', margin: [0, 5, 0, 5] },
+                totalLabel: { fontSize: 14, bold: true, color: '#1F2937' },
+                totalValue: { fontSize: 14, bold: true, color: '#1F2937' },
+                notesText: { font: 'Onest', color: '#4B5563', fontSize: 10 },
+                footer: { fontSize: 8, color: 'grey' }
+            },
+        };
 
         const pdfDoc = this.printer.createPdfKitDocument(docDefinition);
         return new Promise((resolve, reject) => {
@@ -369,11 +367,11 @@ export class ReportRepositoryAdapter implements ReportRepository {
 
     async generateAdjustmentReportRange(adjustments: AdjustmentWithStore[], startDate: Date, endDate: Date, storeName: string): Promise<Buffer> {
         let totalAdjustmentsImpact = 0;
-        const content: TDocumentDefinitions['content'] = [];
-    
+        const content: any[] = [];
+
         adjustments.forEach((adjustment, index) => {
             let adjustmentImpact = 0;
-    
+
             const itemsTableBody = [
                 [
                     { text: 'Producto', style: 'tableHeader' },
@@ -382,15 +380,15 @@ export class ReportRepositoryAdapter implements ReportRepository {
                     { text: 'Costo Unitario', style: 'tableHeader', alignment: 'right' },
                     { text: 'Impacto', style: 'tableHeader', alignment: 'right' },
                 ],
-    
+
                 ...adjustment.items.map(item => {
                     const cost = Number(item.product.w_ficha.cost);
                     const quantity = Number(item.quantity);
                     const subtotal = quantity * cost;
                     adjustmentImpact += subtotal;
-    
+
                     const valueStyle = quantity < 0 ? 'negativeValue' : 'positiveValue';
-    
+
                     return [
                         item.product.name,
                         { text: item.product.w_ficha.condition, alignment: 'center' },
@@ -399,7 +397,7 @@ export class ReportRepositoryAdapter implements ReportRepository {
                         { text: formatCurrency(subtotal), alignment: 'right', style: valueStyle },
                     ];
                 }),
-    
+
                 [
                     { text: 'Impacto Total del Ajuste', colSpan: 4, alignment: 'right', bold: true, style: 'tableHeader' },
                     {},
@@ -409,7 +407,7 @@ export class ReportRepositoryAdapter implements ReportRepository {
                 ]
             ];
             totalAdjustmentsImpact += adjustmentImpact;
-    
+
             if (index > 0) {
                 content.push({ text: '', pageBreak: 'before' });
             }
@@ -460,7 +458,7 @@ export class ReportRepositoryAdapter implements ReportRepository {
                         },
                         style: 'itemsTable'
                     },
-                     {
+                    {
                         text: 'Notas Adicionales',
                         style: 'subheader',
                         margin: [0, 20, 0, 5],
@@ -472,7 +470,7 @@ export class ReportRepositoryAdapter implements ReportRepository {
                 ]
             });
         });
-    
+
         if (adjustments.length > 0) {
             content.push({ text: '', pageBreak: 'before' });
             content.push({
@@ -501,8 +499,8 @@ export class ReportRepositoryAdapter implements ReportRepository {
                 ]
             });
         }
-    
-        const docDefinition: TDocumentDefinitions = {
+
+        const docDefinition: any = {
             pageSize: 'A4',
             pageMargins: [40, 80, 40, 60],
             header: {
@@ -521,9 +519,9 @@ export class ReportRepositoryAdapter implements ReportRepository {
                 alignment: 'center',
                 style: 'footer',
             }),
-    
+
             content: content,
-    
+
             styles: {
                 header: { fontSize: 24, bold: true, color: '#111827' },
                 documentTitle: { fontSize: 12, color: '#6B7280' },
@@ -539,7 +537,7 @@ export class ReportRepositoryAdapter implements ReportRepository {
                 negativeValue: { color: '#b91c1c' }
             },
         };
-    
+
         const pdfDoc = this.printer.createPdfKitDocument(docDefinition);
         return new Promise((resolve, reject) => {
             try {

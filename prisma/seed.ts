@@ -1,6 +1,15 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
+import * as dotenv from 'dotenv';
 
-const prisma = new PrismaClient();
+dotenv.config();
+
+const connectionString = `${process.env.DATABASE_URL}`;
+
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 const PERMISSIONS_LIST = [
   // --- Permisos sobre Productos ---
@@ -22,7 +31,7 @@ const PERMISSIONS_LIST = [
   { action: 'update', resource: 'provider', description: 'Permite editar proveedores existentes' },
   { action: 'delete', resource: 'provider', description: 'Permite eliminar proveedores' },
   { action: 'report', resource: 'provider', description: 'Permite generar reportes de proveedores' },
-  
+
   // --- Permisos sobre Miembros de la Tienda ---
   { action: 'create', resource: 'member', description: 'Permite invitar nuevos miembros a la tienda' },
   { action: 'read', resource: 'member', description: 'Permite ver la lista de miembros y sus roles' },
@@ -69,8 +78,8 @@ async function main() {
 }
 
 main().catch((e) => {
-    console.error('❌ Error durante el seeding:', e);
-    process.exit(1);
+  console.error('❌ Error durante el seeding:', e);
+  process.exit(1);
 }).finally(async () => {
-    await prisma.$disconnect();
+  await prisma.$disconnect();
 });

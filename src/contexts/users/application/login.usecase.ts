@@ -14,13 +14,13 @@ export class LoginUseCase {
     @Inject(USER_REPOSITORY)
     private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async execute(email: string, password: string, ref?: string, tx?: Transaction): Promise<Result<{ access_token: string, refresh_token: string }, Error>> {
     try {
       this.logger.debug(`Buscando usuario con email: ${email}`);
       const user = await this.userRepository.findByEmail(email, tx);
-      
+
       if (!user) {
         this.logger.warn(`Intento de inicio de sesión fallido: usuario con email ${email} no encontrado`);
         return failure(new Error('Credenciales inválidas'));
@@ -36,36 +36,36 @@ export class LoginUseCase {
 
       this.logger.debug(`Validando contraseña para usuario: ${email}`);
       const isValidPassword = await user.comparePassword(password);
-      
+
       if (!isValidPassword) {
         this.logger.warn(`Intento de inicio de sesión fallido: contraseña incorrecta para el usuario ${email}`);
         return failure(new Error('Credenciales inválidas'));
       }
 
-      const payload = { 
-        email: user.emailValue, 
-        sub: user.idValue, 
+      const payload = {
+        email: user.emailValue,
+        sub: user.idValue,
       };
-      
+
       const access_token = this.jwtService.sign(
-        payload, 
-        { 
-          expiresIn: process.env.JWT_ACCESS_EXPIRATION || '15m', 
+        payload,
+        {
+          expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '15m') as any,
           secret: process.env.JWT_ACCESS_SECRET || 'default_secret'
         }
       );
-      
+
       const refresh_token = this.jwtService.sign(
-        payload, 
-        { 
-          expiresIn: process.env.JWT_REFRESH_EXPIRATION || '7d', 
+        payload,
+        {
+          expiresIn: (process.env.JWT_REFRESH_EXPIRATION || '7d') as any,
           secret: process.env.JWT_REFRESH_SECRET || 'default_refresh_secret'
         }
       );
-      
+
       this.logger.log(`Inicio de sesión exitoso para el usuario: ${email}`);
       return success({ access_token, refresh_token });
-      
+
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       this.logger.error(`Error en el proceso de autenticación: ${errorMessage}`, error instanceof Error ? error.stack : '');
